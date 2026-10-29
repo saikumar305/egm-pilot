@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--
+Copyright 2026 Google LLC.
+SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EGM Autopilot: how a Jira ticket becomes a reviewed MR</title>
+<style>
+  :root {
+    --bg:#f6f7fb; --card:#fff; --ink:#1d2433; --muted:#5b6578; --line:#d9deea;
+    --elephant:#3d6fe0; --fish:#e8890c; --ok:#1f9d6b; --warn:#c9302c; --human:#8a4fd6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#10131c; --card:#181d2a; --ink:#e8ecf6; --muted:#9aa5bd; --line:#2a3246; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:22px 24px 6px; max-width:1100px; margin:auto; }
+  h1 { margin:0 0 4px; font-size:1.5rem; }
+  header p { margin:0; color:var(--muted); }
+  main { max-width:1100px; margin:auto; padding:12px 24px 40px; }
+
+  /* progress chips */
+  .track { display:flex; gap:6px; flex-wrap:wrap; margin:14px 0; }
+  .chip { border:1px solid var(--line); background:var(--card); color:var(--muted); border-radius:999px;
+          padding:4px 12px; font-size:.82rem; cursor:pointer; transition:all .3s; }
+  .chip.done { color:var(--ok); border-color:var(--ok); }
+  .chip.on { background:var(--elephant); border-color:var(--elephant); color:#fff; transform:scale(1.06); }
+
+  /* stage */
+  .stage { position:relative; background:var(--card); border:1px solid var(--line); border-radius:16px;
+           padding:26px 14px 30px; overflow:hidden; }
+  .actors { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; position:relative; z-index:1; }
+  .actor { text-align:center; padding:12px 6px; border-radius:14px; border:2px solid var(--line);
+           opacity:.35; transition:all .45s; background:var(--bg); }
+  .actor .ic { font-size:2rem; display:block; }
+  .actor b { display:block; font-size:.9rem; }
+  .actor small { color:var(--muted); font-size:.74rem; display:block; line-height:1.25; }
+  .actor.on { opacity:1; border-color:var(--elephant); transform:translateY(-4px); box-shadow:0 8px 20px rgba(61,111,224,.2); }
+  .actor.fish.on { border-color:var(--fish); box-shadow:0 8px 20px rgba(232,137,12,.22); }
+  .actor.human.on { border-color:var(--human); box-shadow:0 8px 20px rgba(138,79,214,.22); }
+  .actor.bad.on { border-color:var(--warn); box-shadow:0 8px 20px rgba(201,48,44,.22); }
+  .fishrow { display:flex; justify-content:center; gap:4px; font-size:1.5rem; }
+  .fishrow span { animation:bob 1.6s ease-in-out infinite; }
+  .fishrow span:nth-child(2){ animation-delay:.2s } .fishrow span:nth-child(3){ animation-delay:.4s } .fishrow span:nth-child(4){ animation-delay:.6s }
+  @keyframes bob { 50% { transform:translateY(-6px) } }
+
+  .packet { position:absolute; z-index:3; padding:4px 11px; border-radius:999px; background:var(--elephant); color:#fff;
+            font-size:.8rem; font-weight:600; white-space:nowrap; box-shadow:0 4px 14px rgba(0,0,0,.25);
+            transition:left .9s cubic-bezier(.6,.05,.25,1), top .9s cubic-bezier(.6,.05,.25,1), opacity .4s, background .3s; opacity:0; }
+  .packet.show { opacity:1; }
+
+  /* explanation */
+  .explain { display:grid; grid-template-columns:1.2fr 1fr; gap:16px; margin-top:16px; }
+  @media (max-width:760px){ .explain{grid-template-columns:1fr} .actors{grid-template-columns:repeat(2,1fr)} }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .box h2 { margin:0 0 6px; font-size:1.15rem; }
+  .box .tag { font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .box ul { margin:8px 0 0; padding-left:20px; } .box li { margin:3px 0; }
+  .who { margin-top:10px; padding:8px 12px; border-radius:10px; background:var(--bg); font-size:.9rem; }
+  .who.you { border-left:4px solid var(--human); } .who.auto { border-left:4px solid var(--ok); }
+  .side h3 { margin:0 0 8px; font-size:.95rem; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:.78rem; font-weight:600; margin:2px 3px 2px 0; color:#fff; }
+  .pill.s { background:var(--ok) } .pill.f { background:var(--elephant) } .pill.h { background:var(--warn) }
+  .pill.a { background:#6b7a99 } .pill.o { background:var(--fish) } .pill.b { background:var(--warn) }
+  .meter { height:12px; border-radius:6px; background:linear-gradient(90deg,var(--warn) 0 40%,var(--fish) 40% 70%,var(--ok) 70%); position:relative; margin:10px 0 4px; }
+  .meter i { position:absolute; top:-5px; width:4px; height:22px; background:var(--ink); border-radius:2px; left:0; transition:left 1.2s ease; }
+  .side table { width:100%; border-collapse:collapse; font-size:.85rem; } .side td,.side th { padding:3px 6px; text-align:left; border-bottom:1px solid var(--line); }
+  .fadein { animation:fade .6s both; } @keyframes fade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* controls */
+  .controls { display:flex; gap:8px; align-items:center; margin-top:14px; flex-wrap:wrap; }
+  button { font:inherit; padding:8px 16px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }
+  button.primary { background:var(--elephant); color:#fff; border-color:var(--elephant); }
+  button:disabled { opacity:.4; cursor:default; }
+  .count { margin-left:auto; color:var(--muted); font-size:.9rem; }
+  @media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>EGM Autopilot, step by step</h1>
+  <p>How a Jira ticket becomes a reviewed Merge Request, with you reviewing only the last step. Use the buttons or the &larr; &rarr; keys.</p>
+</header>
+<main>
+  <div class="track" id="track" role="tablist" aria-label="Steps"></div>
+
+  <div class="stage" id="stage">
+    <div class="actors" id="actors"></div>
+    <div class="packet" id="packet"></div>
+  </div>
+
+  <div class="explain">
+    <div class="box" id="text" aria-live="polite"></div>
+    <div class="box side" id="side"></div>
+  </div>
+
+  <div class="controls">
+    <button id="prev">&larr; Back</button>
+    <button id="next" class="primary">Next &rarr;</button>
+    <button id="play">&#9654; Auto-play</button>
+    <button id="reset">Restart</button>
+    <span class="count" id="count"></span>
+  </div>
+</main>
+
+<script>
+const ACTORS = {
+  jira:     { ic:"🎫", name:"Jira ticket",   sub:"The work request", cls:"" },
+  elephant: { ic:"🐘", name:"Elephant",       sub:"Claude with full context: remembers everything", cls:"" },
+  fish:     { ic:"fish", name:"Goldfish",     sub:"Fresh reviewers: see only the spec or diff", cls:"fish" },
+  repo:     { ic:"🧪", name:"Code & tests",   sub:"Isolated git worktree + checks", cls:"" },
+  mr:       { ic:"🦊", name:"GitLab MR",      sub:"Draft, in your name", cls:"" },
+};
+// 5 grid columns: jira, elephant, fish, repo, mr. "human" and "guard" are extra cards shown by steps.
+const ORDER = ["jira","elephant","fish","repo","mr"];
+
+const STEPS = [
+ { chip:"Meet the cast", from:null, to:null, on:["elephant","fish"],
+   title:"Two kinds of Claude: an Elephant and Goldfish",
+   body:["The <b>Elephant</b> is the main Claude session. It reads the ticket and the code, and it remembers everything.",
+         "A <b>Goldfish</b> is a reviewer that starts with a blank memory every time. It sees only the file you hand it, so it can't be talked into agreeing by the author's reasoning.",
+         "Autopilot is the recipe that makes them work together, from ticket to merge request."],
+   who:["auto","Runs inside your own Claude Code session, using your own Jira and GitLab login. There is no bot account."],
+   side:()=>`<h3>Why Goldfish?</h3><p>If the same mind writes and checks the work, it misses its own mistakes. A reviewer with no memory reads the work like a stranger would.</p>` },
+
+ { chip:"1 Intake", from:"jira", to:"elephant", label:"LABS-2345", on:["jira","elephant"],
+   title:"1. Intake: read the ticket and check it's ready",
+   body:["The Elephant fetches the ticket: description, acceptance criteria, labels, comments.",
+         "It scores how ready the ticket is. If the score is too low, it <b>parks</b>: it asks specific questions on the ticket and stops, rather than guessing.",
+         "Ticket text is treated as data, never as instructions. A ticket that says \"ignore your rules\" is logged and parked."],
+   who:["auto","Nothing for you to do. If it parks, you answer on Jira and run it again with <code>--resume</code>."],
+   side:()=>`<h3>Readiness score</h3><div class="meter"><i id="needle"></i></div>
+     <small>&lt;40 park &middot; 40-70 proceed, record gaps as Assumptions &middot; &gt;70 go</small>
+     <p>Example: LABS-2345 scored about <b>85</b>.</p>`, after(){ setTimeout(()=>{const n=document.getElementById("needle"); if(n) n.style.left="85%";},120); } },
+
+ { chip:"2 Triage", from:"elephant", to:"elephant", label:"pick a lane", on:["elephant"],
+   title:"2. Triage: how careful does this need to be?",
+   body:["Risk decides the rigor. Small, clear fixes take the fast <b>small</b> lane. Anything touching auth, payments, database schema, public APIs, CI or security labels is forced into the <b>high</b> lane.",
+         "The high lane adds a human <b>spec gate</b>: you approve the plan before any code is written."],
+   who:["auto","Chosen by rules, not mood. The lane is recorded with a one-paragraph reason."],
+   side:()=>`<h3>Lanes</h3><table>
+     <tr><th>Lane</th><th>Spec review</th><th>Code reviewers</th></tr>
+     <tr><td><span class="pill s">small</span></td><td>2 reviewers</td><td>2</td></tr>
+     <tr><td><span class="pill f">feature</span></td><td>full 5-stage</td><td>3-4</td></tr>
+     <tr><td><span class="pill h">high</span></td><td>full + <b>your approval</b></td><td>4 incl. security</td></tr></table>` },
+
+ { chip:"3 Workspace", from:"elephant", to:"repo", label:"git worktree", on:["elephant","repo"],
+   title:"3. Workspace: a safe copy to work in",
+   body:["The Elephant makes a separate git worktree and branch <code>ai/LABS-2345-…</code>, so your own checkout and uncommitted files stay untouched.",
+         "It runs the existing checks once to record a <b>baseline</b>. Failures that were already there are not blamed on the new work."],
+   who:["auto","Your working directory is never modified."],
+   side:()=>`<h3>Baseline example</h3><p>66 unit tests already failed before any change. They were recorded, then shown as pre-existing in the MR.</p>` },
+
+ { chip:"4 Spec", from:"jira", to:"elephant", label:"requirements", on:["jira","elephant"],
+   title:"4. Spec: the Elephant interviews itself",
+   body:["Normally a human answers design questions. Here the Elephant asks itself the same questions and answers from evidence: the ticket, linked docs, the code, existing tests.",
+         "What it can't answer becomes one of three things:"],
+   who:["auto","The spec is a short plan: what changes, which files, which tests. It includes a table linking each acceptance criterion to a planned test."],
+   side:()=>`<h3>Unknowns get a label</h3>
+     <span class="pill a">Assumption</span> low impact, noted, move on<br>
+     <span class="pill o">Open Decision</span> safe default chosen, flagged for you<br>
+     <span class="pill b">Blocker</span> no safe default: park and ask` },
+
+ { chip:"5 Spec review", from:"elephant", to:"fish", label:"spec only", on:["elephant","fish"],
+   title:"5. Spec review: Goldfish try to break the plan",
+   body:["Fresh reviewers read <i>only the spec</i>. They check clarity, design risks and whether it is concrete enough to build.",
+         "Their findings are sorted by fixed rules: no evidence means dropped, out of scope means follow-up, clear fix means applied, a real choice means safest default plus an Open Decision.",
+         "Up to 3 rounds. Blockers left at the end mean park, never build on a bad plan."],
+   who:["auto","On the <b>high</b> lane only: a Draft MR with just the spec is opened and the run waits for your approval."],
+   side:()=>`<h3>Reviewers (spec)</h3><p>Zoom Out &rarr; Comprehension &rarr; Critic (design, structure, style) &rarr; Zoom Out &rarr; Implementation Readiness. Small lane runs just two.</p>` },
+
+ { chip:"6 Build", from:"elephant", to:"repo", label:"tests first", on:["elephant","repo"],
+   title:"6. Implement: tests first, then code",
+   body:["The Elephant writes the tests from the spec, confirms they fail for the right reason, then writes code until they pass.",
+         "One commit per task. Every commit carries the Claude co-author line.",
+         "Real tools judge the result: build, lint, type check, tests, secret scan. Their output beats any model's opinion."],
+   who:["auto","If the spec turns out wrong, the Elephant records a Spec Deviation and amends the spec in the same MR. It never silently diverges."],
+   side:()=>`<h3>Sensors (ground truth)</h3><span class="pill s">build</span><span class="pill s">lint</span><span class="pill s">types</span><span class="pill s">tests</span><span class="pill s">secrets</span>` },
+
+ { chip:"7 Code review", from:"repo", to:"fish", label:"spec + diff", on:["repo","fish"],
+   title:"7. Code review: Goldfish read the diff",
+   body:["Four fresh reviewers get only the spec, the diff and the sensor output. Each has one job:"],
+   who:["auto","Findings are sorted by the same rules, fixed, and the sensors are re-run. Up to 2 rounds; if problems remain, the MR opens as a Draft that says so."],
+   side:()=>`<h3>The four lenses</h3><table>
+     <tr><td>🧾 <b>Spec auditor</b></td><td>Does the code do what the spec says, no more?</td></tr>
+     <tr><td>🐛 <b>Bug hunter</b></td><td>Logic, edge cases, errors</td></tr>
+     <tr><td>🧪 <b>Test adequacy</b></td><td>Would tests fail if the code broke?</td></tr>
+     <tr><td>🔒 <b>Security</b></td><td>Untrusted input to sink. Always on high lane</td></tr></table>` },
+
+ { chip:"8 Raise MR", from:"repo", to:"mr", label:"Draft MR", on:["repo","mr","jira"],
+   title:"8. Raise the Draft MR, as you",
+   body:["Pushes the branch and opens a <b>Draft</b> merge request with your own GitLab login. It leads with <b>\"Needs your judgment\"</b>: Open Decisions, deviations, unresolved findings.",
+         "Then the criterion-to-test table, check results, and follow-ups that were left out of scope.",
+         "A comment with the MR link goes on the Jira ticket."],
+   who:["auto","It never merges, approves or force-pushes. A hook blocks those commands even if a ticket tries to trick it."],
+   side:()=>`<h3>What the MR shows</h3><p>&#9888;&#65039; Needs your judgment<br>&#128203; Criteria &rarr; tests &rarr; code<br>&#9989; Check results (only ones actually run)<br>&#129302; Reviewer rounds and findings</p>` },
+
+ { chip:"9 You review", from:"mr", to:"human", label:"your call", on:["mr","human"], human:true,
+   title:"9. You review. The only mandatory human step",
+   body:["You read the MR, starting with \"Needs your judgment\". Mark it ready, request changes, or close it.",
+         "Merging is always your decision."],
+   who:["you","This is where your attention goes. Everything before it was handled under rules, or parked with a question."],
+   side:()=>`<h3>Safety net, always on</h3><ul>
+     <li>Guard hook blocks merge, approve, force-push, push to main, commits without the Claude co-author line</li>
+     <li>Your GitLab permissions and protected branches are the real enforcement</li>
+     <li>Per-ticket loop and time caps</li></ul>` },
+];
+
+const $ = id => document.getElementById(id);
+const actorsEl=$("actors"), packet=$("packet"), stage=$("stage");
+let i=0, timer=null;
+
+// build actor cards (5 grid cells + an extra "you" card appended hidden until needed)
+function card(key, a){
+  const d=document.createElement("div"); d.className="actor "+(a.cls||""); d.id="a-"+key;
+  const icon = a.ic==="fish" ? `<span class="fishrow"><span>🐟</span><span>🐟</span><span>🐟</span><span>🐟</span></span>` : `<span class="ic">${a.ic}</span>`;
+  d.innerHTML=`${icon}<b>${a.name}</b><small>${a.sub}</small>`; return d;
+}
+ORDER.forEach(k=>actorsEl.appendChild(card(k,ACTORS[k])));
+const human=card("human",{ic:"🙋",name:"You",sub:"Review, merge, or send back",cls:"human"});
+human.style.gridColumn="5"; human.style.display="none"; actorsEl.appendChild(human);
+
+// chips
+STEPS.forEach((s,n)=>{ const c=document.createElement("button"); c.className="chip"; c.textContent=s.chip; c.onclick=()=>go(n); $("track").appendChild(c); });
+
+function center(el){ const r=el.getBoundingClientRect(), s=stage.getBoundingClientRect();
+  return { x:r.left-s.left+r.width/2, y:r.top-s.top+r.height/2 }; }
+
+function movePacket(s, snap){
+  if(!s.from){ packet.classList.remove("show"); return; }
+  const f=$("a-"+s.from), t=$("a-"+s.to); if(!f||!t) return;
+  if(!snap) packet.textContent=s.label;   // set the label first so the width we measure is the new one
+  const a=center(f), b=center(t); const w=packet.offsetWidth||80;
+  if(snap){ // layout changed (resize): jump straight to the destination, no replay
+    packet.style.transition="none"; packet.style.left=(b.x-w/2)+"px"; packet.style.top=(b.y-14+(s.from===s.to?-34:0))+"px";
+    void packet.offsetWidth; packet.style.transition=""; return;
+  }
+  packet.textContent=s.label; packet.style.background = (s.to==="fish")?"var(--fish)":(s.to==="human"?"var(--human)":"var(--elephant)");
+  packet.style.transition="none"; packet.style.left=(a.x-w/2)+"px"; packet.style.top=(a.y-14)+"px"; packet.classList.add("show");
+  void packet.offsetWidth; packet.style.transition="";
+  const same = s.from===s.to;
+  setTimeout(()=>{ packet.style.left=(b.x-w/2+(same?0:0))+"px"; packet.style.top=(b.y-14+(same?-34:0))+"px"; },60);
+}
+
+function go(n){
+  i=Math.max(0,Math.min(STEPS.length-1,n)); const s=STEPS[i];
+  human.style.display = s.human ? "" : "none";
+  // swap the "mr" cell for human layout: keep both visible on final step
+  document.querySelectorAll(".actor").forEach(el=>el.classList.remove("on"));
+  s.on.forEach(k=>{ const el=$("a-"+k); if(el) el.classList.add("on"); });
+  [...$("track").children].forEach((c,n)=>{ c.className="chip"+(n<i?" done":"")+(n===i?" on":""); });
+  $("text").innerHTML=`<span class="tag">Step ${i} of ${STEPS.length-1}</span><h2>${s.title}</h2><ul>${s.body.map(b=>`<li>${b}</li>`).join("")}</ul>
+    <div class="who ${s.who[0]}"><b>${s.who[0]==="you"?"You:":"Automatic:"}</b> ${s.who[1]}</div>`;
+  $("text").classList.remove("fadein"); void $("text").offsetWidth; $("text").classList.add("fadein");
+  $("side").innerHTML=s.side(); $("side").classList.remove("fadein"); void $("side").offsetWidth; $("side").classList.add("fadein");
+  if(s.after) s.after();
+  $("prev").disabled=i===0; $("next").disabled=i===STEPS.length-1;
+  $("count").textContent=`${i+1} / ${STEPS.length}`;
+  setTimeout(()=>movePacket(s),30);
+}
+
+$("next").onclick=()=>go(i+1); $("prev").onclick=()=>go(i-1);
+$("reset").onclick=()=>{ stop(); go(0); };
+function stop(){ clearInterval(timer); timer=null; $("play").innerHTML="&#9654; Auto-play"; }
+$("play").onclick=()=>{ if(timer){ stop(); return; } $("play").innerHTML="&#10074;&#10074; Pause";
+  if(i>=STEPS.length-1) go(0);
+  timer=setInterval(()=>{ if(i>=STEPS.length-1) stop(); else go(i+1); },5200); };
+document.addEventListener("keydown",e=>{ if(e.key==="ArrowRight") go(i+1); if(e.key==="ArrowLeft") go(i-1); });
+window.addEventListener("resize",()=>movePacket(STEPS[i], true));
+go(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+# egm-autopilot defaults. Copy to your repo root to override per project.
+
+jira:
+  ready_label: ai-ready              # tickets the autopilot may pick up
+  needs_input_label: ai-needs-input
+  spec_gate_label: ai-awaiting-spec-approval
+  in_review_status: "In Review"      # transition target after MR is raised
+  high_priority_values: [Highest, Blocker]
+
+readiness:
+  park_below: 40                     # <40: park with questions, do not start
+  proceed_above: 70                  # 40-70: proceed, recording gaps as Assumptions
+
+lanes:
+  small: { max_files: 3 }
+  high:  { min_modules: 3, min_files: 15 }
+
+loops:
+  spec_max_rounds: 3
+  code_max_rounds: 2
+  fix_max_attempts: 3
+on_cap_exceeded:
+  spec: park                         # never build on a failed spec
+  code: draft_mr                     # show humans the work + unresolved findings
+
+checks:                          # run in the worktree. Override per target repo in its own
+                                   # egm-autopilot.config.yaml. If a key is empty, detect from
+                                   # Makefile / package.json / pyproject / CI config; if nothing
+                                   # is detectable, record "no check available" (never claim pass).
+  build:       ""
+  lint:        ""
+  typecheck:   ""
+  test:        ""
+  secret_scan: ""                  # e.g. "gitleaks detect --no-banner"; skipped if tool missing
+
+git:
+  branch_prefix: "ai/"
+  protected_branches: [main, master, develop, release]
+  mr_tool: glab                      # runs as the logged-in developer; no bot account
+
+mr:
+  draft: true                        # MRs open as Draft so the developer owns the publish step
+
+budgets:                             # hard ceilings per ticket; park when exceeded
+  max_minutes: 60
+  max_files_changed: 40
