@@ -1,0 +1,9 @@
+{
+  "title": "Elephant-Goldfish Model",
+  "abbr": "EGM",
+  "tagline": "Design with an elephant. Review with a goldfish.",
+  "repo_url": "https://github.com/google/elephant-goldfish-model",
+  "install_command": "claude plugin marketplace add google/elephant-goldfish-model && claude plugin install egm@egm",
+  "local_install_command": "claude --plugin-dir /path/to/elephant-goldfish-model",
+  "copyright": "Copyright 2026 Google LLC. This is not an officially supported Google product."
+}

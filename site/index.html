@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!--
+Copyright 2026 Google LLC.
+SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elephant-Goldfish Model: design with an elephant, review with a goldfish</title>
+<meta name="description" content="EGM is a Claude Code plugin for spec-driven development: deep-context agents draft specs, zero-context subagents stress-test them, and EGM Autopilot takes a Jira ticket to a reviewed Draft merge request.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%90%98%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <a class="brand" href="#top"><span class="mark" aria-hidden="true">🐘</span><span class="brand-name"><span data-site="title">Elephant-Goldfish Model</span> <abbr data-site="abbr" title="Elephant-Goldfish Model">EGM</abbr></span></a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="#approach">Approach</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#autopilot">Autopilot</a>
+    <a href="#skills">Skills</a>
+    <a href="#install">Install</a>
+  </nav>
+  <a class="icon-link" data-site-href="repo_url" href="#" aria-label="GitHub repository">
+    <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.96 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.08-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+  </a>
+</header>
+
+<main id="main">
+
+<section class="hero" id="top">
+  <p class="eyebrow">Spec-driven development for Claude Code</p>
+  <h1>Design with an elephant.<br><span class="accent">Review with a goldfish.</span></h1>
+  <p class="lede">Engineers use this open-source plugin to draft specs with deep-context agents, then stress-test them with zero-context subagents before any code is written.</p>
+  <div class="hero-actions">
+    <button class="btn primary" type="button" data-copy="install">Copy install command</button>
+    <a class="btn" href="#skills">See the skills</a>
+  </div>
+</section>
+
+<section class="section" id="approach" aria-labelledby="approach-title">
+  <h2 id="approach-title">Design with context. Review with fresh eyes.</h2>
+  <p class="intro">The approach is credited to Dave Rensin. Read his article on the
+    <a href="https://medium.com/@drensin/elephants-goldfish-and-the-new-golden-age-of-software-engineering-c33641a48874" rel="noopener">Elephant, Goldfish and the new golden age of software engineering</a>.</p>
+  <div class="two-up">
+    <article class="card persona elephant">
+      <h3><span aria-hidden="true">🐘</span> Elephant <small>full context</small></h3>
+      <p>Deep-context agents load system history, architecture and user journeys. They brainstorm with you and draft the spec.</p>
+    </article>
+    <article class="card persona goldfish">
+      <h3><span aria-hidden="true">🐠</span> Goldfish <small>zero context</small></h3>
+      <p>Stateless subagents read only the draft and the live source code. They have no memory of the conversation, so they can't agree by default.</p>
+    </article>
+  </div>
+  <p class="note">You make the architectural decisions and approve the spec before anything is implemented.</p>
+</section>
+
+<section class="section alt" id="workflow" aria-labelledby="workflow-title">
+  <h2 id="workflow-title">Go from an idea to a verified spec.</h2>
+  <ol class="steps">
+    <li class="card step">
+      <span class="step-no">1</span>
+      <h3>Brainstorm</h3>
+      <code>/egm:egm-brainstorm</code>
+      <p>Test the idea and write a concept brief.</p>
+    </li>
+    <li class="card step">
+      <span class="step-no">2</span>
+      <h3>Draft</h3>
+      <code>/egm:egm-draft</code>
+      <p>Turn the brief into a design document, one section at a time.</p>
+    </li>
+    <li class="card step">
+      <span class="step-no">3</span>
+      <h3>Review</h3>
+      <code>/egm:egm-review</code>
+      <p>Fresh reviewers run five stages over the design. Resolve the findings.</p>
+    </li>
+  </ol>
+  <p class="note">After the coding agent has built against the spec, check for drift with <code>/egm:egm-drift-report</code>.</p>
+</section>
+
+<section class="section" id="autopilot" aria-labelledby="autopilot-title">
+  <h2 id="autopilot-title">EGM Autopilot: Jira ticket to reviewed merge request</h2>
+  <p class="intro">Give it an assigned Jira ticket. It plans, builds and reviews the change in your own session, with your own logins, and opens a Draft merge request in your name. You review and merge it.</p>
+  <ul class="pipeline" aria-label="Autopilot stages">
+    <li>Intake</li><li>Lane</li><li>Repo scope</li><li>Worktrees</li><li>Spec</li><li>Spec review</li><li>Build</li><li>Code review</li><li>Draft MRs</li><li class="you">You review</li>
+  </ul>
+  <ul class="features">
+    <li><strong>Risk lanes.</strong> Auth, payments, schema, public APIs and cross-repo contracts force a human spec approval.</li>
+    <li><strong>Multi-repo tickets.</strong> It finds the other repos a change touches and asks once which to include.</li>
+    <li><strong>Stacked MRs.</strong> Large tickets become small units, each reviewed on its own, raised as linked Draft MRs.</li>
+    <li><strong>Parked questions.</strong> It asks on Jira with multiple-choice answers (<code>1B 2A</code>) and resumes with <code>--resume</code>.</li>
+    <li><strong>Your repo's MR template.</strong> Only verified checks are ticked; unknowns are marked, never guessed.</li>
+    <li><strong>Guardrails.</strong> It never merges, approves or force-pushes, and Jira text is treated as untrusted input.</li>
+  </ul>
+  <div class="hero-actions">
+    <a class="btn primary" href="autopilot/flow.html">Watch the step-by-step walkthrough</a>
+    <a class="btn" data-site-href="repo_url" data-site-suffix="/blob/main/docs/autopilot.md" href="#">Read the autopilot guide</a>
+  </div>
+</section>
+
+<section class="section alt" id="skills" aria-labelledby="skills-title">
+  <h2 id="skills-title">Included skills</h2>
+  <p class="intro">Every skill ships with the plugin. Commands are shown with the plugin prefix, as Claude Code expects.</p>
+  <div class="skill-grid" id="skill-grid" aria-live="polite">
+    <noscript><p>Enable JavaScript to see the skill list, or read the <a data-site-href="repo_url" href="#">repository</a>.</p></noscript>
+  </div>
+</section>
+
+<section class="section" id="install" aria-labelledby="install-title">
+  <h2 id="install-title">Install the plugin</h2>
+  <p class="intro">Requires Claude Code 2.1.271 or later.</p>
+  <div class="install">
+    <h3>From the marketplace</h3>
+    <div class="command">
+      <code data-site="install_command">claude plugin marketplace add google/elephant-goldfish-model && claude plugin install egm@egm</code>
+      <button class="btn small" type="button" data-copy="install">Copy</button>
+    </div>
+    <h3>From a local copy</h3>
+    <div class="command">
+      <code data-site="local_install_command">claude --plugin-dir /path/to/elephant-goldfish-model</code>
+      <button class="btn small" type="button" data-copy="local">Copy</button>
+    </div>
+    <p class="note">Use a uniquely named copy if an <code>egm</code> plugin is already installed. Then enable it with <code>claude plugin enable egm@egm</code>.</p>
+    <p class="note">Autopilot also needs <code>git</code>, <code>jq</code>, <code>glab</code> logged in as you, and the Atlassian connector in Claude Code. Run <code>/egm:egm-init</code> once to register your repos.</p>
+    <p class="note">Claude Cowork: see <a href="https://github.com/google/elephant-goldfish-model/blob/main/docs/claude.md#claude-cowork" rel="noopener">Claude Code integration</a>.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p data-site="copyright">Copyright 2026 Google LLC. This is not an officially supported Google product.</p>
+  <p class="links">
+    <a data-site-href="repo_url" href="#">Source</a>
+    <a data-site-href="repo_url" data-site-suffix="/blob/main/LICENSE" href="#">Apache 2.0 license</a>
+    <a href="#top">Back to top</a>
+  </p>
+</footer>
+
+<script src="data/skills.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

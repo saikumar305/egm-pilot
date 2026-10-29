@@ -41,6 +41,21 @@ git:
 mr:
   draft: true                        # MRs open as Draft so the developer owns the publish step
 
+repos: {}                            # fallback registry; the per-user home (~/.egm/workspace.yaml, via /egm:egm-init) takes precedence
+  # name: { path: ~/code/name, role: backend|client|frontend|tests|shared|infra|docs|other, checks: { test: "..." } }
+  # Example:
+  # ai-nexus:     { path: ~/storable/ai-nexus,     role: backend }
+  # nexus-client: { path: ~/storable/nexus-client, role: client }
+
+multi_repo:
+  mode: ask                          # ask | primary_only | auto (auto is never used on the high lane)
+  max_repos: 4                       # including the primary; more means the ticket is too broad
+
+units:                               # see references/units.md
+  max: 5                             # more units than this: the ticket is too big, park and propose a split
+  max_files_per_unit: 8
+  mr_strategy: stacked               # stacked | single (small lane is always single)
+
 budgets:                             # hard ceilings per ticket; park when exceeded
   max_minutes: 60
   max_files_changed: 40

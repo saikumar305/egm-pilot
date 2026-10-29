@@ -1,0 +1,65 @@
+[
+  {
+    "name": "egm-brainstorm",
+    "group": "Design",
+    "title": "Brainstorm",
+    "command": "/egm:egm-brainstorm",
+    "summary": "Test an idea and write a concept brief."
+  },
+  {
+    "name": "egm-draft",
+    "group": "Design",
+    "title": "Draft",
+    "command": "/egm:egm-draft",
+    "summary": "Turn a brief or existing notes into a design document."
+  },
+  {
+    "name": "egm-review",
+    "group": "Design",
+    "title": "Review",
+    "command": "/egm:egm-review",
+    "summary": "Review a design with fresh agents across five stages."
+  },
+  {
+    "name": "egm-review-loop",
+    "group": "Design",
+    "title": "Review loop",
+    "command": "/egm:egm-review-loop",
+    "summary": "Run a configured group of reviewers for a specific review task."
+  },
+  {
+    "name": "egm-resolve",
+    "group": "Design",
+    "title": "Resolve",
+    "command": "/egm:egm-resolve",
+    "summary": "Work through review findings and agree on changes."
+  },
+  {
+    "name": "egm-drift-report",
+    "group": "Design",
+    "title": "Drift report",
+    "command": "/egm:egm-drift-report",
+    "summary": "Compare checked-in documents with the current source code."
+  },
+  {
+    "name": "egm-bootstrap",
+    "group": "Design",
+    "title": "Bootstrap",
+    "command": "/egm:egm-bootstrap",
+    "summary": "Create or update documentation for an existing codebase."
+  },
+  {
+    "name": "egm-init",
+    "group": "Workspace",
+    "title": "Init",
+    "command": "/egm:egm-init",
+    "summary": "Register your repos, or a product umbrella, and build per-repo knowledge in ~/.egm."
+  },
+  {
+    "name": "egm-autopilot",
+    "group": "Autopilot",
+    "title": "Autopilot",
+    "command": "/egm:egm-autopilot",
+    "summary": "Take an assigned Jira ticket to a reviewed Draft MR, with one human step at the end."
+  }
+]

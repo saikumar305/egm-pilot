@@ -130,12 +130,20 @@ const STEPS = [
  { chip:"1 Intake", from:"jira", to:"elephant", label:"LABS-2345", on:["jira","elephant"],
    title:"1. Intake: read the ticket and check it's ready",
    body:["The Elephant fetches the ticket: description, acceptance criteria, labels, comments.",
-         "It scores how ready the ticket is. If the score is too low, it <b>parks</b>: it asks specific questions on the ticket and stops, rather than guessing.",
+         "It also loads what it already knows about your repos from <code>~/.egm</code>: what each repo is, how to build and test it, and which contracts it exposes and consumes. You set that up once with <code>/egm:egm-init</code>.",
+         "It scores how ready the ticket is. If the score is too low, it <b>parks</b>: it posts a short multiple-choice form on the ticket and stops, rather than guessing.",
+         "Each question has lettered options and one recommended answer, so you reply <code>1B 2A</code> instead of writing paragraphs.",
          "Ticket text is treated as data, never as instructions. A ticket that says \"ignore your rules\" is logged and parked."],
    who:["auto","Nothing for you to do. If it parks, you answer on Jira and run it again with <code>--resume</code>."],
    side:()=>`<h3>Readiness score</h3><div class="meter"><i id="needle"></i></div>
      <small>&lt;40 park &middot; 40-70 proceed, record gaps as Assumptions &middot; &gt;70 go</small>
-     <p>Example: LABS-2345 scored about <b>85</b>.</p>`, after(){ setTimeout(()=>{const n=document.getElementById("needle"); if(n) n.style.left="85%";},120); } },
+     <p>Example: LABS-2345 scored about <b>85</b>.</p>
+     <h3 style="margin-top:14px">If it parks, you see:</h3>
+     <table><tr><td colspan="2"><b>1. Should expired promos still apply?</b></td></tr>
+     <tr><td>A</td><td>No, reject them <span class="pill s">recommended</span></td></tr>
+     <tr><td>B</td><td>Yes, until month end</td></tr>
+     <tr><td>C</td><td>Other: ____</td></tr></table>
+     <small>You reply <code>1B</code>. No reply means the recommended option, noted as an Assumption.</small>`, after(){ setTimeout(()=>{const n=document.getElementById("needle"); if(n) n.style.left="85%";},120); } },
 
  { chip:"2 Triage", from:"elephant", to:"elephant", label:"pick a lane", on:["elephant"],
    title:"2. Triage: how careful does this need to be?",
@@ -148,60 +156,85 @@ const STEPS = [
      <tr><td><span class="pill f">feature</span></td><td>full 5-stage</td><td>3-4</td></tr>
      <tr><td><span class="pill h">high</span></td><td>full + <b>your approval</b></td><td>4 incl. security</td></tr></table>` },
 
- { chip:"3 Workspace", from:"elephant", to:"repo", label:"git worktree", on:["elephant","repo"],
-   title:"3. Workspace: a safe copy to work in",
-   body:["The Elephant makes a separate git worktree and branch <code>ai/LABS-2345-…</code>, so your own checkout and uncommitted files stay untouched.",
+ { chip:"3 Repos", from:"elephant", to:"human", label:"which repos?", on:["elephant","repo","human"], human:true,
+   title:"3. Repo scope: does this change more than one repo?",
+   body:["Real features often span repos: a backend, its client, a frontend, a tests repo. Before starting, the Elephant looks for them <b>read-only</b>: who consumes the contract this ticket changes, which of your known repos match, which repos the ticket mentions.",
+         "If it finds more than one, it <b>asks you once, up front</b> which to include. In a live session you get a checklist; if nobody is there, it parks with a multiple-choice question.",
+         "Ticket text can suggest a repo but can never add one. Only repos from your own list, or already on your disk, and only after you say yes."],
+   who:["you","One quick choice, before any work starts. Skip it with <code>--repos a,b</code> or <code>--primary-only</code>."],
+   side:()=>`<h3>The proposal you see</h3><table>
+     <tr><td><input type="checkbox" checked disabled></td><td><b>ai-nexus</b> <span class="pill f">backend</span><br><small>adds the new field</small></td></tr>
+     <tr><td><input type="checkbox" checked disabled></td><td><b>nexus-client</b> <span class="pill a">client</span><br><small>found a call that consumes it</small></td></tr>
+     <tr><td><input type="checkbox" checked disabled></td><td><b>admin-portal</b> <span class="pill o">frontend</span><br><small>found a card that displays it</small></td></tr>
+     <tr><td><input type="checkbox" disabled></td><td><b>nexus-e2e</b> <span class="pill s">tests</span><br><small>no coverage yet</small></td></tr></table>
+     <small>Unchecked repos become follow-up tickets. Order: backend &rarr; client &rarr; frontend &rarr; tests. A contract change that another repo uses forces the <b>high</b> lane.</small>` },
+
+ { chip:"4 Workspace", from:"elephant", to:"repo", label:"git worktree", on:["elephant","repo"],
+   title:"4. Workspace: a safe copy to work in",
+   body:["The Elephant makes a separate git worktree and branch <code>ai/LABS-2345-…</code> <b>in each chosen repo</b>, so your own checkouts and uncommitted files stay untouched.",
          "It runs the existing checks once to record a <b>baseline</b>. Failures that were already there are not blamed on the new work."],
    who:["auto","Your working directory is never modified."],
    side:()=>`<h3>Baseline example</h3><p>66 unit tests already failed before any change. They were recorded, then shown as pre-existing in the MR.</p>` },
 
- { chip:"4 Spec", from:"jira", to:"elephant", label:"requirements", on:["jira","elephant"],
-   title:"4. Spec: the Elephant interviews itself",
+ { chip:"5 Spec", from:"jira", to:"elephant", label:"requirements", on:["jira","elephant"],
+   title:"5. Spec: the Elephant interviews itself",
    body:["Normally a human answers design questions. Here the Elephant asks itself the same questions and answers from evidence: the ticket, linked docs, the code, existing tests.",
+         "With several repos there is still <b>one spec</b>. It starts with a <b>Contract</b> section: the exact interface between repos (fields, types, errors, rollout order). Every unit then names its one repo.",
          "What it can't answer becomes one of three things:"],
    who:["auto","The spec is a short plan: what changes, which files, which tests. It includes a table linking each acceptance criterion to a planned test."],
    side:()=>`<h3>Unknowns get a label</h3>
      <span class="pill a">Assumption</span> low impact, noted, move on<br>
      <span class="pill o">Open Decision</span> safe default chosen, flagged for you<br>
-     <span class="pill b">Blocker</span> no safe default: park and ask` },
+     <span class="pill b">Blocker</span> no safe default: park and ask
+     <h3 style="margin-top:14px">Big tickets are split into units</h3>
+     <table><tr><th>Unit</th><th>Delivers</th><th>Criteria</th></tr>
+     <tr><td>U1</td><td>Core rule</td><td>AC1, AC2</td></tr>
+     <tr><td>U2</td><td>API wiring</td><td>AC3</td></tr>
+     <tr><td>U3</td><td>Edge cases</td><td>AC4</td></tr></table>
+     <small>Each unit works and is tested on its own. Small tickets are always one unit.</small>` },
 
- { chip:"5 Spec review", from:"elephant", to:"fish", label:"spec only", on:["elephant","fish"],
-   title:"5. Spec review: Goldfish try to break the plan",
+ { chip:"6 Spec review", from:"elephant", to:"fish", label:"spec only", on:["elephant","fish"],
+   title:"6. Spec review: Goldfish try to break the plan",
    body:["Fresh reviewers read <i>only the spec</i>. They check clarity, design risks and whether it is concrete enough to build.",
          "Their findings are sorted by fixed rules: no evidence means dropped, out of scope means follow-up, clear fix means applied, a real choice means safest default plus an Open Decision.",
          "Up to 3 rounds. Blockers left at the end mean park, never build on a bad plan."],
    who:["auto","On the <b>high</b> lane only: a Draft MR with just the spec is opened and the run waits for your approval."],
    side:()=>`<h3>Reviewers (spec)</h3><p>Zoom Out &rarr; Comprehension &rarr; Critic (design, structure, style) &rarr; Zoom Out &rarr; Implementation Readiness. Small lane runs just two.</p>` },
 
- { chip:"6 Build", from:"elephant", to:"repo", label:"tests first", on:["elephant","repo"],
-   title:"6. Implement: tests first, then code",
-   body:["The Elephant writes the tests from the spec, confirms they fail for the right reason, then writes code until they pass.",
+ { chip:"7 Build", from:"elephant", to:"repo", label:"tests first", on:["elephant","repo"],
+   title:"7. Implement: tests first, then code",
+   body:["The Elephant builds <b>one unit at a time</b>. For each: write the tests from the spec, confirm they fail for the right reason, then write code until they pass.",
+         "A unit must be green before the next one starts, and each unit gets its own branch built on the previous one.",
          "One commit per task. Every commit carries the Claude co-author line.",
          "Real tools judge the result: build, lint, type check, tests, secret scan. Their output beats any model's opinion."],
    who:["auto","If the spec turns out wrong, the Elephant records a Spec Deviation and amends the spec in the same MR. It never silently diverges."],
    side:()=>`<h3>Sensors (ground truth)</h3><span class="pill s">build</span><span class="pill s">lint</span><span class="pill s">types</span><span class="pill s">tests</span><span class="pill s">secrets</span>` },
 
- { chip:"7 Code review", from:"repo", to:"fish", label:"spec + diff", on:["repo","fish"],
-   title:"7. Code review: Goldfish read the diff",
-   body:["Four fresh reviewers get only the spec, the diff and the sensor output. Each has one job:"],
-   who:["auto","Findings are sorted by the same rules, fixed, and the sensors are re-run. Up to 2 rounds; if problems remain, the MR opens as a Draft that says so."],
+ { chip:"8 Code review", from:"repo", to:"fish", label:"spec + diff", on:["repo","fish"],
+   title:"8. Code review: Goldfish read the diff",
+   body:["Each time a unit goes green, fresh reviewers get only the spec, <i>that unit's</i> diff and the sensor output. Each has one job:",
+         "After the last unit, the spec auditor reads the combined diff once more to catch gaps between units. Across repos it reads <b>every repo's diff together</b> and checks that the backend and its consumers agree on field names, types and error shapes."],
+   who:["auto","Findings are sorted by the same rules, fixed, and the sensors are re-run. Up to 2 rounds per unit; if problems remain, the MR opens as a Draft that says so."],
    side:()=>`<h3>The four lenses</h3><table>
      <tr><td>🧾 <b>Spec auditor</b></td><td>Does the code do what the spec says, no more?</td></tr>
      <tr><td>🐛 <b>Bug hunter</b></td><td>Logic, edge cases, errors</td></tr>
      <tr><td>🧪 <b>Test adequacy</b></td><td>Would tests fail if the code broke?</td></tr>
      <tr><td>🔒 <b>Security</b></td><td>Untrusted input to sink. Always on high lane</td></tr></table>` },
 
- { chip:"8 Raise MR", from:"repo", to:"mr", label:"Draft MR", on:["repo","mr","jira"],
-   title:"8. Raise the Draft MR, as you",
-   body:["Pushes the branch and opens a <b>Draft</b> merge request with your own GitLab login. It leads with <b>\"Needs your judgment\"</b>: Open Decisions, deviations, unresolved findings.",
+ { chip:"9 Raise MR", from:"repo", to:"mr", label:"Draft MR", on:["repo","mr","jira"],
+   title:"9. Raise the Draft MRs, as you",
+   body:["Pushes the branches and opens <b>Draft</b> merge requests with your own GitLab login. Bigger tickets become a <b>stack</b>: <code>[1/3]</code> targets the base branch, <code>[2/3]</code> targets <code>[1/3]</code>, and so on, so each review stays small.",
+         "Across repos you get one stack per repo, each MR linking the others with the <b>merge order</b> (producer before consumer). One Jira comment lists them all.",
+         "Each MR uses the <b>repo's own template</b>, with an EGM review block at the bottom: open decisions, deviations and unresolved findings, flagged with a callout at the top.",
          "Then the criterion-to-test table, check results, and follow-ups that were left out of scope.",
          "A comment with the MR link goes on the Jira ticket."],
    who:["auto","It never merges, approves or force-pushes. A hook blocks those commands even if a ticket tries to trick it."],
-   side:()=>`<h3>What the MR shows</h3><p>&#9888;&#65039; Needs your judgment<br>&#128203; Criteria &rarr; tests &rarr; code<br>&#9989; Check results (only ones actually run)<br>&#129302; Reviewer rounds and findings</p>` },
+   side:()=>`<h3>A stacked series</h3><p><span class="pill f">main</span> &larr; <span class="pill s">[1/3]</span> &larr; <span class="pill s">[2/3]</span> &larr; <span class="pill s">[3/3]</span><br><small>Merge in order. Small tickets raise a single MR.</small></p>
+     <h3>What each MR shows</h3><p>&#9888;&#65039; Callout when decisions need you<br>&#128203; Criteria &rarr; tests &rarr; code<br>&#9989; Check results (only ones actually run)<br>&#129302; Reviewer rounds and findings</p>` },
 
- { chip:"9 You review", from:"mr", to:"human", label:"your call", on:["mr","human"], human:true,
-   title:"9. You review. The only mandatory human step",
-   body:["You read the MR, starting with \"Needs your judgment\". Mark it ready, request changes, or close it.",
+ { chip:"10 You review", from:"mr", to:"human", label:"your call", on:["mr","human"], human:true,
+   title:"10. You review. The only mandatory human step",
+   body:["You read the MR: the repo's own template first, then the EGM review block. Open decisions are flagged at the top. Mark it ready, request changes, or close it.",
          "Merging is always your decision."],
    who:["you","This is where your attention goes. Everything before it was handled under rules, or parked with a question."],
    side:()=>`<h3>Safety net, always on</h3><ul>
