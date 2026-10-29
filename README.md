@@ -8,13 +8,16 @@ Elephant-Goldfish Model (EGM) is an open-source plugin for Spec-Driven Developme
 EGM now runs in two modes:
 
 - **Spec-driven development:** brainstorm, draft, and review a design doc with isolated Goldfish reviewers.
-- **EGM Autopilot:** take an assigned Jira ticket to a reviewed, Draft merge request, in your own name, with a single human step at the end.
+- **EGM Autopilot:** take an assigned Jira ticket, or an idea (`--idea`), to a reviewed, Draft merge request, in your own name. Run it unattended, with a single human step at the end, or with `--interactive` as a live Q&A session where you answer and approve each step.
 
 It runs in Claude Code, with a per-user workspace (`/egm:egm-init`) that teaches it your repositories.
 
 ## Features
 
 - **Jira ticket to Draft MR:** `/egm:egm-autopilot <KEY>` runs intake, risk-based triage, a spec, tests-first implementation, isolated code review, and opens the MR. You review and merge.
+- **Ticket or idea:** `--idea "<text>"` (or a Markdown file) starts without a ticket; with `--interactive` it begins with a brainstorm dialogue. `--ticket <PROJECT>` files a Jira issue once the spec is reviewed.
+- **Two modes, one pipeline:** unattended (parks when it needs you) or `--interactive` (spec dialogue, section approvals, per-unit approval, you decide each review finding, MR preview before push).
+- **Reviewed against your repo's standards:** each run builds a standards pack per repo from its `CLAUDE.md`/`AGENTS.md`, `CONTRIBUTING`, style guides, lint config and the conventions in nearby code. The code follows it, and the `egm-code-quality` reviewer checks every diff against it.
 - **Risk lanes:** `small`, `feature` and `high`. Auth, payments, schema, public API, CI or infra changes, and cross-repo contracts force `high`, which adds a human spec approval before any code is written.
 - **Multi-repo tickets (optional):** a run changes one repo by default. Attach more with `--repos <name|path>,...`, from anywhere on disk. Attached repos are built producer-to-consumer and reviewed together for contract agreement. The run may suggest other likely affected repos, but never adds them itself.
 - **Units and stacked MRs:** large tickets are split into small units, each built and reviewed on its own, and raised as a stack of linked Draft MRs (`KEY [1/3]`, `[2/3]`, ...).
@@ -50,11 +53,13 @@ For setup details, see [Claude Code integration](docs/claude.md).
 ```text
 /egm:egm-init                                # once per machine: register your repos
 /egm:egm-autopilot LABS-2345 --dry-run       # plan only: no push, no MR, no Jira writes
-/egm:egm-autopilot LABS-2345                 # the real run
+/egm:egm-autopilot LABS-2345                 # the real run, unattended
+/egm:egm-autopilot LABS-2345 --interactive   # the same run as a live Q&A session
 /egm:egm-autopilot LABS-2345 --resume        # continue after answering a parked question
+/egm:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
 ```
 
-Options: `--lane small|feature|high`, `--base <branch>`, `--repos <name|path>,...` (attach more repos; optional), `--resume`, `--dry-run`.
+Options: `--idea "<text>"|<file.md>` (instead of a key), `--ticket <PROJECT>`, `--interactive` (or `--unattended` on resume), `--lane small|feature|high`, `--base <branch>`, `--repos <name|path>,...` (attach more repos; optional), `--resume`, `--dry-run`.
 
 ```text
 Jira -> intake -> lane -> [attached repos] -> worktrees -> spec -> spec review -> build (units) -> code review -> Draft MRs -> you review
@@ -89,7 +94,7 @@ Knowledge is context, not truth: when it disagrees with the code, the code wins.
 
 | Skill | Command | Description |
 | :---- | :------ | :---------- |
-| **Autopilot** | `/egm:egm-autopilot` | Jira ticket to reviewed Draft MR: lanes, units, optional attached repos, parked questions and resume. |
+| **Autopilot** | `/egm:egm-autopilot` | Jira ticket or idea to reviewed Draft MR: unattended or `--interactive`; lanes, units, repo standards, optional attached repos, parked questions and resume. |
 | **Init** | `/egm:egm-init` | Per-user workspace: optionally registers repos and builds their knowledge. |
 | **Brainstorm** | `/egm:egm-brainstorm` | Zero-doc ideation tool using a multi-lens Goldfish shootdown swarm to stress-test early concepts. |
 | **Draft** | `/egm:egm-draft` | Iterative, section-by-section markdown design specification compiler. |

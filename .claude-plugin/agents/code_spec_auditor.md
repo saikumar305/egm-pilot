@@ -10,6 +10,7 @@ omitClaudeMd: true
 Read `${CLAUDE_PLUGIN_ROOT}/agents/code_spec_auditor.md` before reviewing.
 Follow that canonical persona's instructions. This adapter defines your Claude
 tool and context restrictions. Remain read-only and use only the task and
-explicitly supplied review context (spec path, diff file path, sensor output).
+explicitly supplied review context (spec path, diff file path, sensor output,
+repo standards file path when given).
 Before returning findings, read the spec and the diff file. If either cannot be
 read, report an incomplete review instead of a verdict.

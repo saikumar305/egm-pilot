@@ -11,6 +11,7 @@
   "agents": [
     "./.claude-plugin/agents/bootstrap_orchestrator.md",
     "./.claude-plugin/agents/code_bug_hunter.md",
+    "./.claude-plugin/agents/code_quality.md",
     "./.claude-plugin/agents/code_security.md",
     "./.claude-plugin/agents/code_spec_auditor.md",
     "./.claude-plugin/agents/codebase_details.md",

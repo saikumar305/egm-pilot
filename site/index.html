@@ -8,7 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Elephant-Goldfish Model: design with an elephant, review with a goldfish</title>
-<meta name="description" content="EGM is a Claude Code plugin for spec-driven development: deep-context agents draft specs, zero-context subagents stress-test them, and EGM Autopilot takes a Jira ticket to a reviewed Draft merge request.">
+<meta name="description" content="EGM is a Claude Code plugin for spec-driven development: deep-context agents draft specs, zero-context subagents stress-test them, and EGM Autopilot takes a Jira ticket or an idea to a reviewed Draft merge request.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%90%98%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -84,13 +84,16 @@ SPDX-License-Identifier: Apache-2.0
 </section>
 
 <section class="section" id="autopilot" aria-labelledby="autopilot-title">
-  <h2 id="autopilot-title">EGM Autopilot: Jira ticket to reviewed merge request</h2>
-  <p class="intro">Give it an assigned Jira ticket. It plans, builds and reviews the change in your own session, with your own logins, and opens a Draft merge request in your name. You review and merge it.</p>
+  <h2 id="autopilot-title">EGM Autopilot: Jira ticket or idea to reviewed merge request</h2>
+  <p class="intro">Give it an assigned Jira ticket, or describe an idea with <code>--idea</code>. It plans, builds and reviews the change in your own session, with your own logins, and opens a Draft merge request in your name. You review and merge it.</p>
   <ul class="pipeline" aria-label="Autopilot stages">
     <li>Intake</li><li>Lane</li><li>Attached repos</li><li>Worktrees</li><li>Spec</li><li>Spec review</li><li>Build</li><li>Code review</li><li>Draft MRs</li><li class="you">You review</li>
   </ul>
   <ul class="features">
     <li><strong>Risk lanes.</strong> Auth, payments, schema, public APIs and cross-repo contracts force a human spec approval.</li>
+    <li><strong>Ticket or idea.</strong> <code>--idea "&lt;text&gt;"</code> starts without a ticket; <code>--ticket &lt;PROJECT&gt;</code> files one once the spec is reviewed.</li>
+    <li><strong>Two modes.</strong> Unattended, or <code>--interactive</code>: a live Q&amp;A where you approve the spec, each unit, every review finding and the MR.</li>
+    <li><strong>Your repo's standards.</strong> Code follows a standards pack built from the repo's own instructions, style guides and conventions, and a reviewer checks every diff against it.</li>
     <li><strong>Optional multi-repo.</strong> One repo by default; attach more with <code>--repos</code> from anywhere on disk. Other likely affected repos are only suggested.</li>
     <li><strong>Stacked MRs.</strong> Large tickets become small units, each reviewed on its own, raised as linked Draft MRs.</li>
     <li><strong>Parked questions.</strong> It asks on Jira with multiple-choice answers (<code>1B 2A</code>) and resumes with <code>--resume</code>.</li>

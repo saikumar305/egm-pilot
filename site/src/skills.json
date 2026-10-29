@@ -60,6 +60,6 @@
     "group": "Autopilot",
     "title": "Autopilot",
     "command": "/egm:egm-autopilot",
-    "summary": "Take an assigned Jira ticket to a reviewed Draft MR, with one human step at the end."
+    "summary": "Take an assigned Jira ticket, or an idea, to a reviewed Draft MR: unattended or interactive."
   }
 ]

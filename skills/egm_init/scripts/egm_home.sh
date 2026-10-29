@@ -12,6 +12,8 @@
 #   egm_home.sh meta <name>          record the repo's current commit in knowledge/<name>/meta.json
 #   egm_home.sh stale [<name>]       freshness per repo: fresh | stale (<n> commits) | unbuilt | missing
 #   egm_home.sh run-dir <KEY>        print (and create) the run directory for a ticket
+#   egm_home.sh idea-key             mint a run key for an idea run (IDEA-<yyyymmddHHMM>) and
+#                                    create its run directory
 #   egm_home.sh resolve <name|path>  resolve a --repos entry (registry name, or a path to any
 #                                    git checkout) to name<TAB>path<TAB>role
 #   egm_home.sh activate <session>   mark an autopilot run active for the guard hook
@@ -100,6 +102,12 @@ EOF
     mkdir -p "$HOME_DIR/runs/$key"; echo "$HOME_DIR/runs/$key"
     ;;
 
+  idea-key)
+    n="$(date +%Y%m%d%H%M)"
+    while [ -e "$HOME_DIR/runs/IDEA-$n" ]; do n=$((n + 1)); done
+    mkdir -p "$HOME_DIR/runs/IDEA-$n"; echo "IDEA-$n"
+    ;;
+
   resolve)
     entry="${1:-}"; [ -n "$entry" ] || die "usage: resolve <name|path>"
     if [ -f "$REGISTRY" ]; then
@@ -126,5 +134,5 @@ EOF
     else rm -f "$HOME_DIR/active/$sid"; fi
     ;;
 
-  *) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+  *) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac

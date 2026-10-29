@@ -22,6 +22,8 @@ Lanes are the autopilot's version of "adaptive depth": spend rigor in proportion
 `small` if ALL hold: issue type is Bug/Chore/Task; expected change <= `lanes.small.max_files`
 files in one module; acceptance criteria clear; no new dependency; no schema/API change.
 Otherwise `feature`. Changes spanning two or more repos are never `small`: at least `feature`.
+Idea runs have no issue type: they qualify for `small` only when the idea describes a fix or
+chore and the other conditions hold.
 
 ## 3. What each lane runs
 
@@ -34,11 +36,12 @@ Otherwise `feature`. Changes spanning two or more repos are never `small`: at le
 | **Spec gate (human)** | no | no | **yes** |
 | Tests | from spec cases | from spec cases | from spec cases + negative cases |
 | Units | 1 (never stacked) | split, stacked MRs | split, stacked MRs |
-| Code reviewers | spec-auditor, bug-hunter | + test-adequacy, zoom-out | + security (mandatory) |
+| Code reviewers | spec-auditor, bug-hunter, code-quality | + test-adequacy, zoom-out | + security (mandatory) |
 | MR labels | `ai-generated`, `lane-small` | `ai-generated`, `lane-feature` | + `needs-senior-review` |
-| Human touchpoints | MR review | MR review (per stacked MR) | spec approval + MR review (per stacked MR) |
+| Human touchpoints (unattended) | MR review | MR review (per stacked MR) | spec approval + MR review (per stacked MR) |
+| Human touchpoints (`--interactive`) | every phase gate (see SKILL.md Modes) | same | same, spec approval in chat |
 
-## 4. Resolution policy (replaces interactive `/egm-resolve`)
+## 4. Resolution policy (unattended; `--interactive` uses `egm-resolve` instead)
 
 For each synthesized finding, in order:
 

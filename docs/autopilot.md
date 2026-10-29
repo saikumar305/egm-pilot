@@ -5,10 +5,18 @@ SPDX-License-Identifier: Apache-2.0
 
 # EGM Autopilot: how to use it
 
-EGM Autopilot takes an assigned Jira ticket to a reviewed Merge Request. It runs in your own
+EGM Autopilot takes an assigned Jira ticket, or an idea you describe (`--idea`), to a reviewed
+Merge Request. It runs in your own
 Claude Code session with your own `glab` and Atlassian logins. There is no bot account. The MR
-opens as a **Draft in your name**, and you review and merge it. You are the only mandatory
-human step.
+opens as a **Draft in your name**, and you review and merge it.
+
+It has two modes over the same pipeline:
+
+- **Unattended** (default): you are the only mandatory human step, at the end. Anything that
+  needs you parks with a question.
+- **Interactive** (`--interactive`): a live Q&A session. You answer the open questions, approve
+  the spec section by section, approve each unit, decide on every review finding, and approve
+  the MR before it is pushed.
 
 For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 
@@ -38,7 +46,9 @@ For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 # from inside the repo the ticket is about
 /egm:egm-init                        # optional, once per machine: create ~/.egm and register your repos
 /egm:egm-autopilot LABS-2345 --dry-run   # plan only: no push, no MR, no Jira writes
-/egm:egm-autopilot LABS-2345         # the real run
+/egm:egm-autopilot LABS-2345         # the real run, unattended
+/egm:egm-autopilot LABS-2345 --interactive   # the same run, approving each step yourself
+/egm:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
 ```
 
 Start with `--dry-run` on every new ticket type. Read the plan, the spec and the lane choice,
@@ -131,6 +141,7 @@ default is `~/.egm`.
 
 ```text
 /egm:egm-autopilot <JIRA-KEY or Jira URL> [options]
+/egm:egm-autopilot --idea "<text>" | --idea <file.md> [options]
 ```
 
 Examples:
@@ -139,9 +150,12 @@ Examples:
 /egm:egm-autopilot LABS-2345
 /egm:egm-autopilot https://sparefoot.atlassian.net/browse/LABS-2345
 /egm:egm-autopilot LABS-2345 --dry-run
+/egm:egm-autopilot LABS-2345 --interactive
 /egm:egm-autopilot LABS-2345 --lane feature --base feature/pricing-api
 /egm:egm-autopilot LABS-2345 --repos orders-client,~/work/web-app
 /egm:egm-autopilot LABS-2345 --resume
+/egm:egm-autopilot --idea docs/ideas/csv-export.md --ticket LABS
+/egm:egm-autopilot IDEA-202610291430 --resume
 ```
 
 Run it from the repo the ticket is about (the primary repo). It changes only that repo unless
@@ -153,8 +167,12 @@ you attach more with `--repos`.
 
 | Option | What it does | Notes |
 |---|---|---|
-| `<JIRA-KEY or URL>` | the ticket to work on | required |
+| `<JIRA-KEY or URL>` | the ticket to work on | required, unless `--idea` is given |
+| `--idea "<text>"` or `--idea <file.md>` | starts from your description instead of a ticket | see [7.15](#715-starting-from-an-idea). The run key is `IDEA-<yyyymmddHHMM>` |
+| `--ticket <PROJECT>` | with `--idea`, files a Jira issue in that project once the spec is reviewed | the MRs and Jira steps then use the new key. Never under `--dry-run` |
 | `--dry-run` | runs intake, triage, attached-repo checks, workspace planning and the spec review, then prints the plan and stops | no push, no MR, no Jira writes, no commits. Lists suggested repos you could attach |
+| `--interactive` | runs the pipeline as a live Q&A session: you answer and approve at every phase | see [7.14](#714-interactive-mode). Needs a live session, not `-p` |
+| `--unattended` | switches a resumed interactive run back to unattended | the default for new runs |
 | `--lane small\|feature\|high` | chooses the rigor level | can only **lower** the lane, and only if no hard-trigger fired. Hard-triggers always force `high` |
 | `--base <branch>` | the branch to build on and target for the primary repo | use it when the ticket depends on unmerged work, such as another open MR's branch. Other repos use their default branch |
 | `--repos a,b` | attaches more repos to change, besides the primary | each entry is a registry name or a path to any local git checkout. Optional; without it only the primary repo changes |
@@ -168,20 +186,24 @@ run state lives in `~/.egm/runs/<KEY>`.
 ## 6. What happens in a run
 
 ```text
-Jira ticket
-  -> 0 Intake          fetch the ticket, load repo knowledge, readiness score, park if weak
+Jira ticket or idea
+  -> 0 Intake          fetch the ticket (or write idea.md), load repo knowledge, readiness score,
+                       park if weak
   -> 1 Triage          pick a lane: small | feature | high (risk sets the rigor)
   -> 1b Attached repos only if you passed --repos: check each one; note suggestions
-  -> 2 Workspace       one isolated worktree and branch per repo in the run; record baselines
+  -> 2 Workspace       one isolated worktree and branch per repo in the run; record baselines;
+                       build each repo's standards pack
   -> 3 Spec            self-interview from evidence; Assumptions, Open Decisions, Blockers
   -> 4 Spec review     fresh reviewers (Goldfish) challenge the spec; high lane waits for you
-  -> 5 Implement       one unit at a time: tests first, then code, then sensors
-  -> 6 Code review     fresh reviewers read each unit's diff, plus a final cross-repo pass
+  -> 5 Implement       one unit at a time: tests first, then code following the repo's standards
+  -> 6 Code review     fresh reviewers read each unit's diff against the spec and the repo's
+                       standards, plus a final cross-repo pass
   -> 7 Raise MRs       Draft MRs in your name, linked and ordered, plus a Jira comment
   -> YOU review        the only mandatory human step
 ```
 
 Each phase writes its state to disk, so an interrupted run loses at most the phase in progress.
+With `--interactive`, each arrow is also a point where you answer or approve (see 7.14).
 
 ---
 
@@ -193,7 +215,7 @@ Read `skills/egm_autopilot/references/lanes.md` for the full rules.
 
 | Lane | Typical change | Spec review | Code reviewers | Human touchpoints |
 |---|---|---|---|---|
-| `small` | a clear bug or small task, one module, no contract change | two reviewers | spec auditor, bug hunter | MR review |
+| `small` | a clear bug or small task, one module, no contract change | two reviewers | spec auditor, bug hunter, code quality | MR review |
 | `feature` | a normal feature, one or more units | full five-stage review | adds test adequacy and simplicity | MR review |
 | `high` | auth, payments, schema, public API, CI or infra, security labels, large blast radius, or a contract consumed by another attached repo | full review, two critic passes | adds security, always on | spec approval **and** MR review |
 
@@ -310,7 +332,30 @@ scan is skipped and reported.
 Baselines are recorded before any change. A check that was already failing is reported as
 pre-existing, so new failures are never blamed on the old ones.
 
-### 7.10 The questions file: structured parking
+### 7.10 Repo standards: reviewed against your repo's rules
+
+Code is reviewed against the repo's own rules, not generic taste. In the workspace phase the run
+builds a **standards pack** per repo, `<run-dir>/standards-<repo>.md`, from:
+
+- the repo's `CLAUDE.md` / `AGENTS.md` (including nested ones where the change lands);
+- `CONTRIBUTING.md`, style guides, and ADRs that state a rule;
+- linter, formatter, type-checker and commit-message config (recorded as "enforced by tools",
+  so reviewers leave those to the sensors);
+- the Conventions section of the repo's knowledge file, if registered;
+- conventions observed in 2-3 files next to each changed file (error handling, logging,
+  naming, layering, test fixtures), each with two or more examples as evidence.
+
+Every line cites its source. The Elephant follows the pack while implementing; where the spec
+conflicts with an explicit rule, the rule wins unless an Open Decision says why not. Every code
+reviewer receives the pack, and **`egm-code-quality`** (on every lane) reviews the diff against
+it: repo rules, fit with nearby code, reuse, maintainability, and operational hygiene (swallowed
+errors, log levels, timeouts, N+1 queries). The MR lists the packs used and any rule broken on
+purpose.
+
+This matters because reviewers start with no context (they never see `CLAUDE.md`), and an
+attached repo's instruction files would otherwise never load at all.
+
+### 7.11 The questions file: structured parking
 
 When the run must park, it writes `<run-dir>/questions.md` and posts the same text on Jira:
 
@@ -326,17 +371,57 @@ Reply with `1B` or `1B 2A`. For "Other", write `3: your text`. Anything left out
 recommended option, and the run records it as an Assumption. Free text outside those forms is
 treated as untrusted ticket text, not as instructions.
 
-### 7.11 Your identity, always
+### 7.12 Your identity, always
 
 Git, `glab` and Jira all use **your** logins. The MR is raised as you, so you own it. The
 autopilot never merges, approves, or force-pushes, and it never edits a repo you cannot push to.
 
-### 7.12 Dry runs
+### 7.13 Dry runs
 
 `--dry-run` prints the lane, readiness score, spec path, Assumptions, Open Decisions, review
 findings, and how each finding would be resolved. It makes no changes outside the run
 directory. It also lists repos the change probably affects, with the `--repos` value that would
 attach them.
+
+### 7.14 Interactive mode
+
+`--interactive` runs the same phases as a Q&A session with you. Isolation, sensors, units,
+standards and guardrails are unchanged; only who decides changes.
+
+| Phase | What you do |
+|---|---|
+| Intake | See the readiness score and gaps; answer the open questions now instead of a park |
+| Triage | Confirm the lane, or lower it (never below a hard-trigger) |
+| Repos | See suggested repos with evidence; attach one by asking |
+| Spec | Answer only the questions the evidence could not (one at a time, `egm-brainstorm` style); approve the mini-spec, or each section of the design (`egm-draft` gates) |
+| Spec review | Step through the `egm-review` stage checkpoints and decide findings with `egm-resolve`. On `high`, your approval in chat is the spec gate |
+| Implement | Approve each unit's plan; see its diff summary and checks when green; approve any spec deviation |
+| Code review | Apply, contest or defer each finding |
+| MR | Approve the MR preview (title, target, labels, description) and the Jira comment before anything is pushed |
+
+Say "stop" at any point to park; `--resume` continues in the recorded mode, and
+`--resume --unattended` finishes the rest on its own. Interactive mode needs a live session, so
+it is refused under `claude -p`.
+
+### 7.15 Starting from an idea
+
+`--idea` takes a quoted description or a path to a Markdown file instead of a Jira key. The
+rest of the pipeline is the same: lanes, standards pack, reviewers, units and Draft MRs.
+
+- **Run key.** The run mints `IDEA-<yyyymmddHHMM>` and tells you; use it for `--resume`.
+- **Intake.** It writes `idea.md` in the run folder: your text verbatim, then a problem
+  statement and acceptance criteria it derived, marked as derived. An idea rarely has testable
+  criteria, so readiness is usually lower than a groomed ticket's.
+- **Best with `--interactive`.** You then run a full `egm-brainstorm` dialogue first and the
+  spec is built from the resulting concepts brief. Unattended, the run fills gaps with
+  Assumptions and parks on anything it cannot default safely.
+- **Lane.** No issue type, so `small` only when the idea is clearly a fix or chore.
+- **Jira.** Without `--ticket`, nothing is written to Jira: parks go to `questions.md` only,
+  MR titles have no key, and the description says `Jira: none (idea run)`. With
+  `--ticket LABS`, the run files one issue once the spec passes review (interactive: after you
+  approve it) and from then on behaves like a ticket run. Branches keep the `IDEA-` key.
+- **Trust.** Your idea sets the scope, not the process: text in it asking to skip reviews or
+  gates is ignored. Anything it links or quotes is treated as untrusted input, like ticket text.
 
 ---
 
@@ -410,7 +495,7 @@ What a park does:
 
 To continue:
 
-1. Reply on Jira (`1B 2A`) or edit `questions.md`.
+1. Reply on Jira (`1B 2A`) or edit `questions.md` (idea runs without a ticket: the file only).
 2. Run `/egm:egm-autopilot <KEY> --resume`.
 
 On resume the run reads answers only from the form: option picks and `n: text` lines. Everything
@@ -520,6 +605,8 @@ permissions.
 |---|---|---|
 | Your repo registry and knowledge | `~/.egm/` (or `EGM_HOME`) | no, per user |
 | Run state per ticket | `~/.egm/runs/<KEY>/` | no |
+| Idea text and derived criteria (idea runs) | `~/.egm/runs/IDEA-<n>/idea.md` | no |
+| Repo standards packs | `~/.egm/runs/<KEY>/standards-<repo>.md` | no |
 | Learnings (categories only) | `~/.egm/learnings.md` | no |
 | Units, commits, MR branches | `ai/<KEY>-<slug>[-u<n>]` in each repo | yes, pushed to GitLab |
 | Worktrees | `<repo-parent>/<repo>-<KEY>`, beside each repo | no |

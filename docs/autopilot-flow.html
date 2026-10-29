@@ -133,7 +133,8 @@ const STEPS = [
          "It also loads what it already knows about your repos from <code>~/.egm</code>: what each repo is, how to build and test it, and which contracts it exposes and consumes. You set that up once with <code>/egm:egm-init</code>.",
          "It scores how ready the ticket is. If the score is too low, it <b>parks</b>: it posts a short multiple-choice form on the ticket and stops, rather than guessing.",
          "Each question has lettered options and one recommended answer, so you reply <code>1B 2A</code> instead of writing paragraphs.",
-         "Ticket text is treated as data, never as instructions. A ticket that says \"ignore your rules\" is logged and parked."],
+         "Ticket text is treated as data, never as instructions. A ticket that says \"ignore your rules\" is logged and parked.",
+         "No ticket yet? <code>--idea \"&lt;text&gt;\"</code> starts from your description instead. The run writes it to <code>idea.md</code> with derived acceptance criteria, and with <code>--interactive</code> it begins with a brainstorm dialogue."],
    who:["auto","Nothing for you to do. If it parks, you answer on Jira and run it again with <code>--resume</code>."],
    side:()=>`<h3>Readiness score</h3><div class="meter"><i id="needle"></i></div>
      <small>&lt;40 park &middot; 40-70 proceed, record gaps as Assumptions &middot; &gt;70 go</small>
@@ -204,6 +205,7 @@ const STEPS = [
  { chip:"7 Build", from:"elephant", to:"repo", label:"tests first", on:["elephant","repo"],
    title:"7. Implement: tests first, then code",
    body:["The Elephant builds <b>one unit at a time</b>. For each: write the tests from the spec, confirm they fail for the right reason, then write code until they pass.",
+         "The code follows the repo's <b>standards pack</b>: its own <code>CLAUDE.md</code>/<code>AGENTS.md</code>, contributing and style guides, lint config, and the conventions in the files around the change.",
          "A unit must be green before the next one starts, and each unit gets its own branch built on the previous one.",
          "One commit per task. Every commit carries the Claude co-author line.",
          "Real tools judge the result: build, lint, type check, tests, secret scan. Their output beats any model's opinion."],
@@ -212,12 +214,13 @@ const STEPS = [
 
  { chip:"8 Code review", from:"repo", to:"fish", label:"spec + diff", on:["repo","fish"],
    title:"8. Code review: Goldfish read the diff",
-   body:["Each time a unit goes green, fresh reviewers get only the spec, <i>that unit's</i> diff and the sensor output. Each has one job:",
+   body:["Each time a unit goes green, fresh reviewers get only the spec, <i>that unit's</i> diff, the sensor output and the repo's standards pack. Each has one job:",
          "After the last unit, the spec auditor reads the combined diff once more to catch gaps between units. Across repos it reads <b>every repo's diff together</b> and checks that the backend and its consumers agree on field names, types and error shapes."],
    who:["auto","Findings are sorted by the same rules, fixed, and the sensors are re-run. Up to 2 rounds per unit; if problems remain, the MR opens as a Draft that says so."],
-   side:()=>`<h3>The four lenses</h3><table>
+   side:()=>`<h3>The lenses</h3><table>
      <tr><td>🧾 <b>Spec auditor</b></td><td>Does the code do what the spec says, no more?</td></tr>
      <tr><td>🐛 <b>Bug hunter</b></td><td>Logic, edge cases, errors</td></tr>
+     <tr><td>📐 <b>Code quality</b></td><td>Your repo's rules and conventions, reuse, maintainability</td></tr>
      <tr><td>🧪 <b>Test adequacy</b></td><td>Would tests fail if the code broke?</td></tr>
      <tr><td>🔒 <b>Security</b></td><td>Untrusted input to sink. Always on high lane</td></tr></table>` },
 

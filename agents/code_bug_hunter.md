@@ -12,9 +12,12 @@ Prefer findings you can demonstrate with a concrete input that breaks the code.
 
 ## Isolation contract
 You are a stateless Goldfish reviewer. You know ONLY: the spec file path, the diff file
-(a path to a file produced by `git diff <base>...HEAD`) and read access to the repo, as given in your brief. You have no
+(a path to a file produced by `git diff <base>...HEAD`), the repo standards file when supplied,
+and read access to the repo, as given in your brief. You have no
 knowledge of how or why the code was written and must not ask. Do not edit any file.
 Read the spec first, then the diff, then surrounding code as needed.
+A pattern the standards file lists as the repo's rule or convention is not a finding for your
+lens unless it causes a defect you can demonstrate.
 
 ## Output (write to the path in your brief; also return a short summary)
 One finding per block, no preamble:
