@@ -19,10 +19,12 @@ The helper script owns the layout, the repo list and the freshness check:
 `SCRIPT="${CLAUDE_PLUGIN_ROOT}/skills/egm_init/scripts/egm_home.sh"`. Run it with Bash. You
 read the repos and write the knowledge files.
 
-Usage: `/egm:egm-init [add <path>... [--role r] [--name n] | add-umbrella <path> | sync-umbrella [name] | refresh [name|--all] | status | remove <name>]`
-With no arguments: initialise, then check whether the current directory is inside a product
-umbrella (`"$SCRIPT" detect`); if so offer `add-umbrella` for it, else offer to add the
-current directory's repo.
+Usage: `/egm:egm-init [add <path>... [--role r] [--name n] | refresh [name|--all] | status | remove <name>]`
+With no arguments: initialise, then offer to add the current directory's repo.
+
+Registering is optional. Repos are independent checkouts wherever they live on disk; they do
+not need a shared parent folder or manifest. The registry only gives them short names for
+`--repos` and lets knowledge be built ahead of time. The autopilot also accepts plain paths.
 
 This skill is interactive. Unlike the autopilot, you may ask the developer questions.
 It **never modifies the repos it reads.**
@@ -48,48 +50,6 @@ For each path:
 6. Build the knowledge (next section), then `"$SCRIPT" meta <name>`.
 
 After the last repo, build or update `map.md`.
-
-## add-umbrella <path> / sync-umbrella [name]
-A **product umbrella** is a repo that coordinates several application repos (for example
-`~/storable/aidlc-umbrella`). It already owns the repo list, the checkouts and the durable
-product context, so adopt it instead of duplicating it.
-
-The umbrella layout (from its `AGENTS.md`): `workspace-repos.json` declares the repos;
-`repos/<name>/` holds independent checkouts (gitignored); `domain-context/README.md`,
-`domain-context/engineering/architecture.md` and `domain-context/reference/` hold durable and
-generated product context; `product-specs/<feature-id>/feature-spec.md` holds feature intent;
-`aidlc/` and `.aidlc/` are owned by the AIDLC plugin.
-
-1. `"$SCRIPT" umbrella <path>` prints `name url branch checkout-path present|missing` per
-   declared repo. The umbrella name is the directory name (for example `aidlc-umbrella`).
-2. For each `present` repo, add a registry block in the shape in `home.md`, with
-   `path:` the checkout, `umbrella: <umbrella name>`, `base:` the manifest `branch` (else the
-   remote default branch), and a role (infer, then confirm all roles in one question).
-3. **Duplicates.** If a repo's remote URL (compare normalised, without credentials) matches
-   an already registered repo with a different path, say so and ask which checkout to keep:
-   a developer often has both `~/storable/<repo>` and `<umbrella>/repos/<repo>`. Prefer the
-   umbrella's checkout unless told otherwise. Never register one name twice.
-4. For each `missing` repo, report it and tell the developer to run the umbrella's `bin/setup`
-   (it clones declared repos over the network). Do not clone them yourself.
-5. Build knowledge per repo as below. For umbrella repos also read, **only if they exist and are
-   committed context**: `domain-context/README.md`, `domain-context/engineering/architecture.md`,
-   and the files under `domain-context/reference/`. Link them under "Other indexes" instead of
-   copying them. Do not scan `product-specs/`.
-   Also use the umbrella's **AIDLC CodeKB** as a read-only seed when it exists:
-   `aidlc/spaces/<space>/codekb/<repo>/` (typically `architecture.md`, `api-documentation.md`,
-   `technology-stack.md`, `dependencies.md`, `component-inventory.md`, and
-   `reverse-engineering-timestamp.md`). Read it to speed up `overview.md` and `contracts.md`,
-   but verify every claim you reuse against the code, record its timestamp as "CodeKB written
-   <date>", and say how many commits the repo has had since (`git log --since`). It goes stale
-   like anything else (for example it can still describe a client that has since been
-   replaced), so the code always wins. Never write to it.
-6. Never write inside the umbrella (not `domain-context/`, `product-specs/`, `aidlc/`,
-   `.aidlc/`, `workspace-repos.json`): its generated context belongs to its own tooling
-   (`/context-engineering:build-deep-context`). If `domain-context/reference/` is empty, say
-   that running it would give richer context, and carry on with your own overview.
-7. `sync-umbrella`: re-read the manifest. Add newly declared repos, report registered umbrella
-   repos that are no longer declared (ask before removing), and report checkouts that went
-   missing. Then `refresh` any that are stale.
 
 ## Build knowledge for one repo
 Read only the repo. Sources: README and docs, manifests (`pyproject.toml`, `package.json`,

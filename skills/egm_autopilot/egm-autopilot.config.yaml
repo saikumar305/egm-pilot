@@ -41,14 +41,14 @@ git:
 mr:
   draft: true                        # MRs open as Draft so the developer owns the publish step
 
-repos: {}                            # fallback registry; the per-user home (~/.egm/workspace.yaml, via /egm:egm-init) takes precedence
+repos: {}                            # optional names for --repos; the per-user home (~/.egm/workspace.yaml, via /egm:egm-init) takes precedence
   # name: { path: ~/code/name, role: backend|client|frontend|tests|shared|infra|docs|other, checks: { test: "..." } }
   # Example:
-  # ai-nexus:     { path: ~/storable/ai-nexus,     role: backend }
-  # nexus-client: { path: ~/storable/nexus-client, role: client }
+  # orders-api: { path: ~/code/orders-api, role: backend }
+  # web-app:    { path: ~/work/web-app,    role: frontend }
 
-multi_repo:
-  mode: ask                          # ask | primary_only | auto (auto is never used on the high lane)
+multi_repo:                          # opt-in: only repos you attach with --repos are changed
+  suggest: true                      # list other likely affected repos as follow-ups; never attaches them
   max_repos: 4                       # including the primary; more means the ticket is too broad
 
 units:                               # see references/units.md

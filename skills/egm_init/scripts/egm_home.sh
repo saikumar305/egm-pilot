@@ -8,15 +8,14 @@
 #
 #   egm_home.sh home                 print the resolved home directory
 #   egm_home.sh init                 create the layout (idempotent, never overwrites)
-#   egm_home.sh repos                list registered repos: name<TAB>path<TAB>role<TAB>umbrella ("-" if none)
+#   egm_home.sh repos                list registered repos: name<TAB>path<TAB>role
 #   egm_home.sh meta <name>          record the repo's current commit in knowledge/<name>/meta.json
 #   egm_home.sh stale [<name>]       freshness per repo: fresh | stale (<n> commits) | unbuilt | missing
 #   egm_home.sh run-dir <KEY>        print (and create) the run directory for a ticket
-#   egm_home.sh detect [<dir>]       print the product umbrella root containing <dir> (has
-#                                    workspace-repos.json); exit 1 if there is none
-#   egm_home.sh umbrella <path>      read an umbrella's workspace-repos.json and print
-#                                    name<TAB>url<TAB>branch<TAB>checkout path<TAB>present|missing
-#                                    ("-" for an empty branch; credentials stripped from urls)
+#   egm_home.sh resolve <name|path>  resolve a --repos entry (registry name, or a path to any
+#                                    git checkout) to name<TAB>path<TAB>role
+#   egm_home.sh activate <session>   mark an autopilot run active for the guard hook
+#   egm_home.sh deactivate <session> clear that mark
 set -euo pipefail
 
 HOME_DIR="${EGM_HOME:-$HOME/.egm}"
@@ -29,11 +28,10 @@ need_registry() { [ -f "$REGISTRY" ] || die "not initialised: $REGISTRY not foun
 repos() {
   need_registry
   awk -v home="$HOME" '
-    function flush() { if (name != "") { sub(/^~/, home, path); printf "%s\t%s\t%s\t%s\n", name, path, role, umb } }
+    function flush() { if (name != "") { sub(/^~/, home, path); printf "%s\t%s\t%s\n", name, path, role } }
     /^repos:[[:space:]]*(\{\})?[[:space:]]*$/ { inrepos = 1; next }
     /^[^[:space:]#]/ { if (inrepos) { flush(); name = ""; inrepos = 0 } }
-    inrepos && /^  [^[:space:]#][^:]*:[[:space:]]*$/ { flush(); name = $1; sub(/:$/, "", name); path = ""; role = "other"; umb = "-"; next }
-    inrepos && /^    umbrella:/ { v = $0; sub(/^    umbrella:[[:space:]]*/, "", v); gsub(/^["\047]|["\047]$/, "", v); umb = v }
+    inrepos && /^  [^[:space:]#][^:]*:[[:space:]]*$/ { flush(); name = $1; sub(/:$/, "", name); path = ""; role = "other"; next }
     inrepos && /^    path:/ { v = $0; sub(/^    path:[[:space:]]*/, "", v); gsub(/^["\047]|["\047]$/, "", v); path = v }
     inrepos && /^    role:/ { v = $0; sub(/^    role:[[:space:]]*/, "", v); gsub(/^["\047]|["\047]$/, "", v); role = v }
     END { if (inrepos) flush() }
@@ -81,7 +79,7 @@ EOF
 
   stale)
     only="${1:-}"
-    repos | while IFS=$'\t' read -r name path role umb; do
+    repos | while IFS=$'\t' read -r name path role; do
       [ -z "$only" ] || [ "$only" = "$name" ] || continue
       if [ ! -d "$path" ]; then printf '%s\tmissing\n' "$name"; continue; fi
       meta="$HOME_DIR/knowledge/$name/meta.json"
@@ -102,32 +100,31 @@ EOF
     mkdir -p "$HOME_DIR/runs/$key"; echo "$HOME_DIR/runs/$key"
     ;;
 
-  detect)
-    d="$(cd "${1:-$PWD}" 2>/dev/null && pwd -P)" || exit 1
-    while [ "$d" != "/" ]; do
-      if [ -f "$d/workspace-repos.json" ]; then echo "$d"; exit 0; fi
-      d="$(dirname "$d")"
-    done
-    exit 1
+  resolve)
+    entry="${1:-}"; [ -n "$entry" ] || die "usage: resolve <name|path>"
+    if [ -f "$REGISTRY" ]; then
+      line="$(repos | awk -F'\t' -v n="$entry" '$1==n')"
+      if [ -n "$line" ]; then printf '%s\n' "$line"; exit 0; fi
+    fi
+    case "$entry" in "~"|"~/"*) entry="$HOME${entry#\~}" ;; esac
+    [ -d "$entry" ] || die "not a registered repo or a directory: $entry"
+    top="$(git -C "$entry" rev-parse --show-toplevel 2>/dev/null)" || die "not a git checkout: $entry"
+    top="$(cd "$top" && pwd -P)"
+    # A registered checkout keeps its registry name and role.
+    if [ -f "$REGISTRY" ]; then
+      line="$(repos | while IFS=$'\t' read -r n p r; do
+        [ -d "$p" ] && [ "$(cd "$p" && pwd -P)" = "$top" ] && printf '%s\t%s\t%s\n' "$n" "$top" "$r"
+      done | head -n 1)"
+      if [ -n "$line" ]; then printf '%s\n' "$line"; exit 0; fi
+    fi
+    printf '%s\t%s\t%s\n' "$(basename "$top")" "$top" other
     ;;
 
-  umbrella)
-    root="$(cd "${1:-}" 2>/dev/null && pwd -P)" || die "usage: umbrella <path to an existing umbrella>"
-    m="$root/workspace-repos.json"
-    [ -f "$m" ] || die "no workspace-repos.json in $root"
-    jq -e '.repos | type == "array"' "$m" >/dev/null 2>&1 || die "malformed manifest: $m"
-    sub="$(jq -r '.root // "repos"' "$m")"
-    case "$sub" in /*|*..*|"") die "unsafe root in manifest: '$sub'" ;; esac
-    jq -r --arg root "$root/$sub" \
-      '.repos[] | [(.name // ""), (.url // "-"), (.branch // "-"), ($root + "/" + (.name // ""))] | @tsv' "$m" |
-    while IFS=$'\t' read -r name url branch path; do
-      # Names become directory names and registry keys: refuse anything that could escape or confuse.
-      if ! [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then echo "egm_home: skipped unsafe repo name: '$name'" >&2; continue; fi
-      if [ -d "$path/.git" ] || [ -f "$path/.git" ]; then state=present; else state=missing; fi
-      url="$(printf '%s' "$url" | sed -E 's#(//)[^@/]*@#\1#')"
-      printf '%s\t%s\t%s\t%s\t%s\n' "$name" "$url" "$branch" "$path" "$state"
-    done
+  activate|deactivate)
+    sid="${1:-}"; [[ "$sid" =~ ^[A-Za-z0-9-]+$ ]] || die "bad session id: '$sid'"
+    if [ "$cmd" = activate ]; then mkdir -p "$HOME_DIR/active"; : > "$HOME_DIR/active/$sid"
+    else rm -f "$HOME_DIR/active/$sid"; fi
     ;;
 
-  *) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+  *) sed -n '2,18p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac

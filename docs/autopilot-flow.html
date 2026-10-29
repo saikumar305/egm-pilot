@@ -156,18 +156,18 @@ const STEPS = [
      <tr><td><span class="pill f">feature</span></td><td>full 5-stage</td><td>3-4</td></tr>
      <tr><td><span class="pill h">high</span></td><td>full + <b>your approval</b></td><td>4 incl. security</td></tr></table>` },
 
- { chip:"3 Repos", from:"elephant", to:"human", label:"which repos?", on:["elephant","repo","human"], human:true,
-   title:"3. Repo scope: does this change more than one repo?",
-   body:["Real features often span repos: a backend, its client, a frontend, a tests repo. Before starting, the Elephant looks for them <b>read-only</b>: who consumes the contract this ticket changes, which of your known repos match, which repos the ticket mentions.",
-         "If it finds more than one, it <b>asks you once, up front</b> which to include. In a live session you get a checklist; if nobody is there, it parks with a multiple-choice question.",
-         "Ticket text can suggest a repo but can never add one. Only repos from your own list, or already on your disk, and only after you say yes."],
-   who:["you","One quick choice, before any work starts. Skip it with <code>--repos a,b</code> or <code>--primary-only</code>."],
-   side:()=>`<h3>The proposal you see</h3><table>
-     <tr><td><input type="checkbox" checked disabled></td><td><b>ai-nexus</b> <span class="pill f">backend</span><br><small>adds the new field</small></td></tr>
-     <tr><td><input type="checkbox" checked disabled></td><td><b>nexus-client</b> <span class="pill a">client</span><br><small>found a call that consumes it</small></td></tr>
-     <tr><td><input type="checkbox" checked disabled></td><td><b>admin-portal</b> <span class="pill o">frontend</span><br><small>found a card that displays it</small></td></tr>
-     <tr><td><input type="checkbox" disabled></td><td><b>nexus-e2e</b> <span class="pill s">tests</span><br><small>no coverage yet</small></td></tr></table>
-     <small>Unchecked repos become follow-up tickets. Order: backend &rarr; client &rarr; frontend &rarr; tests. A contract change that another repo uses forces the <b>high</b> lane.</small>` },
+ { chip:"3 Repos", from:"elephant", to:"repo", label:"attached repos", on:["elephant","repo"],
+   title:"3. Repos: one by default, more only if you attach them",
+   body:["A run changes <b>one repo</b>: the one you start it from. When a ticket also needs a client, a frontend or a tests repo, you attach them with <code>--repos</code>: a short name you registered, or a path to any checkout on your disk. They do not need to live in one folder.",
+         "Each attached repo is checked before any work starts: it is a git checkout, nothing is uncommitted, and you can push there. If one fails, the run stops and tells you why.",
+         "The Elephant may also <b>suggest</b> other repos the change probably touches, with the evidence. Suggestions are only listed; it never adds a repo by itself, and ticket text can never add one."],
+   who:["auto","No question here. Attach repos when you start the run, or on <code>--resume</code> before building starts."],
+   side:()=>`<h3>What you type</h3><table>
+     <tr><td><code>--repos orders-client</code></td><td><span class="pill a">registered</span><br><small>a name from <code>/egm:egm-init</code></small></td></tr>
+     <tr><td><code>--repos ~/work/web-app</code></td><td><span class="pill o">path</span><br><small>any git checkout, anywhere</small></td></tr></table>
+     <h3>Suggested, not attached</h3><table>
+     <tr><td><b>e2e-tests</b> <span class="pill s">tests</span></td><td><small>no coverage of the new field yet</small></td></tr></table>
+     <small>Attached repos are built producer &rarr; consumer. A contract change that another attached repo uses forces the <b>high</b> lane.</small>` },
 
  { chip:"4 Workspace", from:"elephant", to:"repo", label:"git worktree", on:["elephant","repo"],
    title:"4. Workspace: a safe copy to work in",

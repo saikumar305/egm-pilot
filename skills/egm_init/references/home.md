@@ -34,18 +34,13 @@ Keep this exact shape (the script parses it line by line; extra keys per repo ar
 ```yaml
 version: 1
 repos:
-  ai-nexus:
-    path: /Users/me/storable/ai-nexus
+  orders-api:
+    path: /Users/me/code/orders-api
     role: backend
     base: main
 ```
 
-A repo that belongs to a product umbrella (a git repo with `workspace-repos.json`, `repos/`,
-`domain-context/`) gets one extra line, `umbrella: <umbrella directory name>`. The umbrella
-itself is not a registry entry; its manifest stays the source of truth for which repos belong
-and where their checkouts are. Re-read it with `egm-init sync-umbrella`.
-
-Use absolute paths. Roles: `shared`, `backend`, `client`, `frontend`, `tests`, `infra`, `docs`,
+Use absolute paths; repos can live anywhere on disk. Roles: `shared`, `backend`, `client`, `frontend`, `tests`, `infra`, `docs`,
 `other`. This registry supersedes the `repos:` block in `egm-autopilot.config.yaml`.
 
 ## `knowledge/<repo>/overview.md`
@@ -79,7 +74,7 @@ Built from <sha> on <date>. Source of truth is the code; refresh if stale.
 <things that bite: required env vars by NAME only, generated files, slow tests>
 
 ## Other indexes
-<paths to graphify-out/, docs/adr/, existing design docs, an umbrella's domain-context/ and AIDLC CodeKB (with the date it was written), if present>
+<paths to graphify-out/, docs/adr/, existing design docs, if present>
 ```
 
 ## `knowledge/<repo>/contracts.md`
@@ -103,7 +98,7 @@ Built from <sha> on <date>. Source of truth is the code; refresh if stale.
 # Cross-repo map
 | Contract | Exposed by | Consumed by | Evidence |
 |---|---|---|---|
-| POST /v1/summary | ai-nexus | nexus-client, admin-portal | nexus-client/src/client.py:44, admin-portal/src/SummaryCard.tsx:12 |
+| POST /v1/summary | orders-api | orders-client, web-app | orders-client/src/client.py:44, web-app/src/SummaryCard.tsx:12 |
 ```
 
 Add a row only when you saw the consumer's code (grep it); mark guesses `unverified`.

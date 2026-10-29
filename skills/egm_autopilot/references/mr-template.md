@@ -18,9 +18,7 @@ Look in `<repo>/.gitlab/merge_request_templates/` (GitLab matches names case-ins
 | one file (`Default.md` or `DEFAULT.md`) | that file |
 | several files | pick by ticket type: a bug, or a `bugfix` label, takes `bugfix.md`; a `hotfix` label, or a Blocker or Highest priority incident, takes `hotfix.md`; otherwise the default. If the choice is unclear, use the default and say which one you chose in the EGM block |
 
-Known repos (as of Oct 2026): `ai-nexus`, `socket-chat`, `socket-chat-admin`, and
-`ai-chatbot-widget` ship templates. `ai-nexus-client` and `ai-labs-test` do not and use the
-fallback. Re-check the folder at Phase 7. Do not rely on this list.
+Check the folder in each repo at Phase 7; repos without one use the fallback.
 
 ## 2. Fill the repo template
 

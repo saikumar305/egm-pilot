@@ -16,11 +16,11 @@ It runs in Claude Code, with a per-user workspace (`/egm:egm-init`) that teaches
 
 - **Jira ticket to Draft MR:** `/egm:egm-autopilot <KEY>` runs intake, risk-based triage, a spec, tests-first implementation, isolated code review, and opens the MR. You review and merge.
 - **Risk lanes:** `small`, `feature` and `high`. Auth, payments, schema, public API, CI or infra changes, and cross-repo contracts force `high`, which adds a human spec approval before any code is written.
-- **Multi-repo tickets:** the run finds the other repos a change touches (backend, client, frontend, tests) and asks once which to include. Repos are built producer-to-consumer and reviewed together for contract agreement.
+- **Multi-repo tickets (optional):** a run changes one repo by default. Attach more with `--repos <name|path>,...`, from anywhere on disk. Attached repos are built producer-to-consumer and reviewed together for contract agreement. The run may suggest other likely affected repos, but never adds them itself.
 - **Units and stacked MRs:** large tickets are split into small units, each built and reviewed on its own, and raised as a stack of linked Draft MRs (`KEY [1/3]`, `[2/3]`, ...).
 - **Structured questions:** when a run needs an answer it parks with a multiple-choice form (`1B 2A`) on Jira. Resume with `--resume`.
 - **Your repo's MR template:** MRs follow the repo's own `.gitlab/merge_request_templates/`. Only verified checks are ticked, and the EGM review is appended as one block.
-- **Global workspace:** `/egm:egm-init` registers your repos (or a product umbrella) and builds short knowledge files per repo: what it is, how to build and test it, and which contracts it exposes and consumes. Knowledge is checked against the commit it was built from and refreshed when stale.
+- **Global workspace:** `/egm:egm-init` optionally registers your repos and builds short knowledge files per repo: what it is, how to build and test it, and which contracts it exposes and consumes. Knowledge is checked against the commit it was built from and refreshed when stale.
 - **Guardrails:** a Bash hook blocks force pushes, pushes to protected branches, merging or approving MRs, hook bypasses, and commits without the Claude co-author line. Jira content is treated as untrusted input.
 - **Isolated reviewers (Goldfish):** reviewers start with no memory and see only the files in their brief, never the author's reasoning.
 
@@ -54,10 +54,10 @@ For setup details, see [Claude Code integration](docs/claude.md).
 /egm:egm-autopilot LABS-2345 --resume        # continue after answering a parked question
 ```
 
-Options: `--lane small|feature|high`, `--base <branch>`, `--repos a,b`, `--primary-only`, `--resume`, `--dry-run`.
+Options: `--lane small|feature|high`, `--base <branch>`, `--repos <name|path>,...` (attach more repos; optional), `--resume`, `--dry-run`.
 
 ```text
-Jira -> intake -> lane -> repo scope -> worktrees -> spec -> spec review -> build (units) -> code review -> Draft MRs -> you review
+Jira -> intake -> lane -> [attached repos] -> worktrees -> spec -> spec review -> build (units) -> code review -> Draft MRs -> you review
 ```
 
 The full how-to is in [docs/autopilot.md](docs/autopilot.md), and a step-by-step animated walkthrough is in [docs/autopilot-flow.html](docs/autopilot-flow.html). Open the HTML in a browser.
@@ -75,8 +75,7 @@ The per-user workspace lives in `~/.egm` (override with `EGM_HOME`). It contains
 
 ```text
 /egm:egm-init                                  # create ~/.egm and offer to add the current repo
-/egm:egm-init add ~/storable/ai-nexus          # register a repo (role inferred, you confirm)
-/egm:egm-init add-umbrella ~/storable/aidlc-umbrella   # register a product umbrella's repos
+/egm:egm-init add ~/code/orders-api            # register a repo (role inferred, you confirm)
 /egm:egm-init refresh --all                    # rebuild knowledge for repos that changed
 /egm:egm-init status                           # repos, freshness and run count
 ```
@@ -90,8 +89,8 @@ Knowledge is context, not truth: when it disagrees with the code, the code wins.
 
 | Skill | Command | Description |
 | :---- | :------ | :---------- |
-| **Autopilot** | `/egm:egm-autopilot` | Jira ticket to reviewed Draft MR: lanes, units, multi-repo scope, parked questions and resume. |
-| **Init** | `/egm:egm-init` | Per-user workspace: registers repos and umbrellas and builds their knowledge. |
+| **Autopilot** | `/egm:egm-autopilot` | Jira ticket to reviewed Draft MR: lanes, units, optional attached repos, parked questions and resume. |
+| **Init** | `/egm:egm-init` | Per-user workspace: optionally registers repos and builds their knowledge. |
 | **Brainstorm** | `/egm:egm-brainstorm` | Zero-doc ideation tool using a multi-lens Goldfish shootdown swarm to stress-test early concepts. |
 | **Draft** | `/egm:egm-draft` | Iterative, section-by-section markdown design specification compiler. |
 | **Review** | `/egm:egm-review` | Multi-stage verification pipeline orchestrator (Zoom Out -> Comprehension -> Critic -> Readiness). |

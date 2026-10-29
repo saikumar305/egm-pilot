@@ -53,7 +53,7 @@
     "group": "Workspace",
     "title": "Init",
     "command": "/egm:egm-init",
-    "summary": "Register your repos, or a product umbrella, and build per-repo knowledge in ~/.egm."
+    "summary": "Optionally register your repos and build per-repo knowledge in ~/.egm."
   },
   {
     "name": "egm-autopilot",

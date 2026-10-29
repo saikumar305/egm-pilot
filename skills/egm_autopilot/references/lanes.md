@@ -14,7 +14,7 @@ Lanes are the autopilot's version of "adaptive depth": spend rigor in proportion
 | Platform | CI/CD config, infra-as-code, dependency major-version bump, build system |
 | Jira signals | label `security`/`compliance`/`pii`, priority Highest/Blocker (configurable) |
 | Blast radius | expected change spans > `lanes.high.min_modules` modules or > `lanes.high.min_files` files |
-| Cross-repo contract | a contract (API, event schema, shared types) changes and another selected repo consumes it |
+| Cross-repo contract | a contract (API, event schema, shared types) changes and another attached repo consumes it |
 | Low confidence | readiness score below `readiness.proceed_above` AND >2 Open Decisions |
 
 ## 2. Soft routing (when no hard-trigger fired)
@@ -29,8 +29,8 @@ Otherwise `feature`. Changes spanning two or more repos are never `small`: at le
 |---|---|---|---|
 | Readiness check | yes | yes | yes |
 | Self-interview | brief | full (3 lenses) | full (6 lenses) |
-| Spec | mini-spec (run dir) | `docs/designs/<KEY>.md` | `docs/designs/<KEY>.md` |
-| Spec review | Critic + Readiness | full 4-stage | full 4-stage, 2 critics |
+| Spec | mini-spec (run dir) | design draft (run dir; copied to `docs/designs/<KEY>-<slug>.md` if that folder exists) | same as feature |
+| Spec review | Critic + Readiness | full 5-stage | full 5-stage, 2 critics |
 | **Spec gate (human)** | no | no | **yes** |
 | Tests | from spec cases | from spec cases | from spec cases + negative cases |
 | Units | 1 (never stacked) | split, stacked MRs | split, stacked MRs |

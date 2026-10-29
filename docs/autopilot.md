@@ -21,23 +21,22 @@ For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 5. [Every option](#5-every-option)
 6. [What happens in a run](#6-what-happens-in-a-run)
 7. [Features in depth](#7-features-in-depth)
-8. [Multi-repo tickets](#8-multi-repo-tickets)
-9. [Product umbrellas](#9-product-umbrellas)
-10. [Parking, answering, and resuming](#10-parking-answering-and-resuming)
-11. [Handing off to another session or person](#11-handing-off-to-another-session-or-person)
-12. [Configuration reference](#12-configuration-reference)
-13. [Safety rules and guardrails](#13-safety-rules-and-guardrails)
-14. [Where things are stored](#14-where-things-are-stored)
-15. [Troubleshooting](#15-troubleshooting)
-16. [Limits and status](#16-limits-and-status)
+8. [Multi-repo tickets (optional)](#8-multi-repo-tickets-optional)
+9. [Parking, answering, and resuming](#9-parking-answering-and-resuming)
+10. [Handing off to another session or person](#10-handing-off-to-another-session-or-person)
+11. [Configuration reference](#11-configuration-reference)
+12. [Safety rules and guardrails](#12-safety-rules-and-guardrails)
+13. [Where things are stored](#13-where-things-are-stored)
+14. [Troubleshooting](#14-troubleshooting)
+15. [Limits and status](#15-limits-and-status)
 
 ---
 
 ## 1. Quick start
 
 ```text
-# from inside the repo the ticket is about (or from your product umbrella)
-/egm:egm-init                        # once per machine: create ~/.egm and register your repos
+# from inside the repo the ticket is about
+/egm:egm-init                        # optional, once per machine: create ~/.egm and register your repos
 /egm:egm-autopilot LABS-2345 --dry-run   # plan only: no push, no MR, no Jira writes
 /egm:egm-autopilot LABS-2345         # the real run
 ```
@@ -57,7 +56,7 @@ then run it for real.
 | `jq` | guard hook and the workspace helper | `jq --version` |
 | `glab`, logged in as you | opens MRs as you | `glab auth status` |
 | Atlassian connector in Claude Code | reads and comments on Jira tickets | `/mcp` shows it connected |
-| Your repos cloned locally | the run changes local checkouts | paths in `~/.egm/workspace.yaml` |
+| Your repos cloned locally | the run changes local checkouts | anywhere on disk; no shared folder needed |
 
 If `glab` cannot detect the GitLab host from a remote, set `GITLAB_HOST=gitlab.com` or create
 the MR through `glab api`. The skill does this automatically when needed.
@@ -67,13 +66,14 @@ the MR through `glab api`. The skill does this automatically when needed.
 ## 3. One-time setup: `/egm:egm-init`
 
 `/egm:egm-init` builds your **per-user workspace**: a registry of your repos plus a short
-knowledge file for each one. The autopilot reads this before it starts, so it knows your
+knowledge file for each one. It is optional: repos can live anywhere on disk, and the
+autopilot also accepts plain paths. Registering gives a repo a short name for `--repos` and
+prebuilt knowledge. The autopilot reads this before it starts, so it knows your
 repos from the first minute rather than searching blind.
 
 ```text
 /egm:egm-init                          # create ~/.egm; offers to add the current repo
-/egm:egm-init add ~/storable/ai-nexus  # register one repo (role inferred, you confirm)
-/egm:egm-init add-umbrella ~/storable/aidlc-umbrella   # register every repo of an umbrella
+/egm:egm-init add ~/code/orders-api   # register a repo (role inferred, you confirm)
 /egm:egm-init refresh --all            # rebuild knowledge for repos that changed
 /egm:egm-init status                   # repos, freshness, number of runs
 /egm:egm-init remove old-repo          # unregister (asks first; never touches the repo)
@@ -140,13 +140,12 @@ Examples:
 /egm:egm-autopilot https://sparefoot.atlassian.net/browse/LABS-2345
 /egm:egm-autopilot LABS-2345 --dry-run
 /egm:egm-autopilot LABS-2345 --lane feature --base feature/pricing-api
-/egm:egm-autopilot LABS-2345 --repos ai-nexus,nexus-client,admin-portal
-/egm:egm-autopilot LABS-2345 --primary-only
+/egm:egm-autopilot LABS-2345 --repos orders-client,~/work/web-app
 /egm:egm-autopilot LABS-2345 --resume
 ```
 
-Run it from the primary repo, or from your umbrella root. In an umbrella the primary repo is
-chosen from the ticket.
+Run it from the repo the ticket is about (the primary repo). It changes only that repo unless
+you attach more with `--repos`.
 
 ---
 
@@ -155,12 +154,11 @@ chosen from the ticket.
 | Option | What it does | Notes |
 |---|---|---|
 | `<JIRA-KEY or URL>` | the ticket to work on | required |
-| `--dry-run` | runs intake, triage, repo scope, workspace planning and the spec review, then prints the plan and stops | no push, no MR, no Jira writes, no commits. The repo-scope prompt still runs |
+| `--dry-run` | runs intake, triage, attached-repo checks, workspace planning and the spec review, then prints the plan and stops | no push, no MR, no Jira writes, no commits. Lists suggested repos you could attach |
 | `--lane small\|feature\|high` | chooses the rigor level | can only **lower** the lane, and only if no hard-trigger fired. Hard-triggers always force `high` |
 | `--base <branch>` | the branch to build on and target for the primary repo | use it when the ticket depends on unmerged work, such as another open MR's branch. Other repos use their default branch |
-| `--repos a,b` | the exact registry repos to change, plus the primary | skips the multi-repo question |
-| `--primary-only` | change only the primary repo | skips the multi-repo question; other candidates become follow-ups |
-| `--resume` | continues a parked run from where it stopped | reads answers from the questions file and Jira comments |
+| `--repos a,b` | attaches more repos to change, besides the primary | each entry is a registry name or a path to any local git checkout. Optional; without it only the primary repo changes |
+| `--resume` | continues a parked run from where it stopped | reads answers from the questions file and Jira comments. Accepts `--repos` while parked before implementation |
 
 The same options are accepted by the skill. `--resume` also works from any directory because
 run state lives in `~/.egm/runs/<KEY>`.
@@ -173,8 +171,8 @@ run state lives in `~/.egm/runs/<KEY>`.
 Jira ticket
   -> 0 Intake          fetch the ticket, load repo knowledge, readiness score, park if weak
   -> 1 Triage          pick a lane: small | feature | high (risk sets the rigor)
-  -> 1b Repo scope     find other repos this ticket touches; ask you once (or park)
-  -> 2 Workspace       one isolated worktree and branch per included repo; record baselines
+  -> 1b Attached repos only if you passed --repos: check each one; note suggestions
+  -> 2 Workspace       one isolated worktree and branch per repo in the run; record baselines
   -> 3 Spec            self-interview from evidence; Assumptions, Open Decisions, Blockers
   -> 4 Spec review     fresh reviewers (Goldfish) challenge the spec; high lane waits for you
   -> 5 Implement       one unit at a time: tests first, then code, then sensors
@@ -197,9 +195,9 @@ Read `skills/egm_autopilot/references/lanes.md` for the full rules.
 |---|---|---|---|---|
 | `small` | a clear bug or small task, one module, no contract change | two reviewers | spec auditor, bug hunter | MR review |
 | `feature` | a normal feature, one or more units | full five-stage review | adds test adequacy and simplicity | MR review |
-| `high` | auth, payments, schema, public API, CI or infra, security labels, large blast radius, or a contract consumed by another repo | full review, two critic passes | adds security, always on | spec approval **and** MR review |
+| `high` | auth, payments, schema, public API, CI or infra, security labels, large blast radius, or a contract consumed by another attached repo | full review, two critic passes | adds security, always on | spec approval **and** MR review |
 
-Changes spanning two or more repos are never `small`. A contract change that another selected
+Changes spanning two or more repos are never `small`. A contract change that another attached
 repo consumes forces `high`.
 
 ### 7.2 Readiness check and parking
@@ -288,8 +286,7 @@ Each MR uses the **merge request template the repo already defines** in
 `.gitlab/merge_request_templates/`, so it looks like every other MR your team raises:
 
 - **Template choice:** a bug or `bugfix` label uses `bugfix.md`; a `hotfix` label or a Blocker
-  or Highest incident uses `hotfix.md`; otherwise the default. Repos with no template (for
-  example `ai-nexus-client` and `ai-labs-test` today) get a built-in layout.
+  or Highest incident uses `hotfix.md`; otherwise the default. Repos with no template get a built-in layout.
 - **Filled in, not rewritten:** headings and checkboxes stay as the repo wrote them. Placeholders
   are replaced, and the commit list is generated, since GitLab only expands `%{all_commits}` in
   its own UI.
@@ -338,61 +335,56 @@ autopilot never merges, approves, or force-pushes, and it never edits a repo you
 
 `--dry-run` prints the lane, readiness score, spec path, Assumptions, Open Decisions, review
 findings, and how each finding would be resolved. It makes no changes outside the run
-directory. The repo-scope question still runs, because that answer decides what the plan covers.
+directory. It also lists repos the change probably affects, with the `--repos` value that would
+attach them.
 
 ---
 
-## 8. Multi-repo tickets
+## 8. Multi-repo tickets (optional)
 
-Real features often touch several repos: a backend, its client, a frontend, a tests repo.
-
-### 8.1 The proposal
-
-After triage, the run looks for other repos read-only, using these sources in order:
-
-1. **Contract consumers.** Repos that consume a contract this ticket changes, from `map.md`
-   and each repo's `contracts.md`, then verified in the code.
-2. **Your registry.** Repos whose name or role matches the ticket's components and links.
-3. **Ticket text.** Repos the ticket names. This is evidence only.
-4. **Sibling checkouts.** Directories beside the primary repo whose remote matches.
-
-If it finds more than one, it shows a proposal:
+A run changes **one repo by default**: the one you run it from. When a ticket also needs a
+client, a frontend or a tests repo, attach them yourself:
 
 ```text
-LABS-1234 looks like it changes more than one repo:
-- ai-nexus (backend, primary): adds the /summary field
-- nexus-client (client): consumes /summary, found client.summary() calling it
-- admin-portal (frontend): shows the summary, found SummaryCard reading it
-- nexus-e2e (tests): no existing coverage of /summary
-Order: backend, client, frontend, tests. One Draft-MR stack per repo, linked together.
+/egm:egm-autopilot LABS-2345 --repos orders-client,~/work/web-app,../e2e-tests
 ```
 
-### 8.2 How you answer
+### 8.1 Attaching
 
-- **Live session:** a multi-select prompt. Unchecked repos become follow-up tickets.
-- **Unattended:** the run parks with a multiple-choice question. Answer `1A` (all of them),
-  `1B` (primary only), or name the repos.
-- **Skip the prompt:** `--repos a,b` includes exactly those, `--primary-only` includes none.
-- **Modes** (`multi_repo.mode` in the config): `ask` (default), `primary_only`, or `auto`.
-  `auto` includes every registered, clean, pushable candidate, and is never used on the `high`
-  lane.
-
-### 8.3 Safety rules for repos
-
-- Ticket text can **suggest** a repo but can never add one, supply a path, or supply a clone URL.
-- Only repos from your registry, or checkouts already on disk, and only after you confirm.
-- A repo you cannot push to is reported and excluded. The run never works around it.
+- Each entry is a **registry name** (from `/egm:egm-init add`) or a **path** to any local git
+  checkout. Registering is optional, and repos do not need to share a parent folder or follow
+  any layout.
+- Each attached repo is checked before any work starts: it is a git checkout, its working tree
+  is clean, and you can push there. If a check fails, the run stops and says which one.
+- You can also attach repos on `--resume` while the run is parked before implementation. The
+  spec is then redone for them. After implementation has started, a new repo means a new run.
 - `multi_repo.max_repos` (default 4) caps the set, primary included. More than that means the
   ticket is too broad, and the run parks with a proposal to split it.
 
-### 8.4 What changes when several repos are included
+### 8.2 Suggestions, never automatic
+
+With `multi_repo.suggest: true` (the default), the run looks read-only for other repos the
+change probably affects: consumers of a contract it changes (from `map.md`, verified in the
+code), registered repos that match the ticket, and repos the ticket names. It **only lists
+them** in the dry-run plan, the summary and the MR's follow-ups, each with its evidence and the
+`--repos` value that would attach it. It never adds them, never asks, and never parks over them.
+Set `suggest: false` to turn this off.
+
+### 8.3 Safety rules for repos
+
+- Only you attach repos. Ticket text can **suggest** a repo but can never add one, supply a
+  path, or supply a clone URL.
+- A repo that was not attached is never written to.
+- A repo you cannot push to is reported and the run stops. It never works around it.
+
+### 8.4 What changes when several repos are attached
 
 - **One spec** for the whole ticket, starting with a **Contract** section: the exact interface
   between repos (fields, types, error shapes, versions, rollout order). Every unit then names
   its single repo.
-- **Build order is producer to consumer:** `shared`, `backend`, `client`, `frontend`, `tests`.
-  A consumer can build against its producer's real code.
-- **Checks per repo:** each repo uses its own commands.
+- **Build order is producer to consumer** (`shared`, `backend`, `client`, `frontend`, `tests`)
+  when roles are known; otherwise the contract direction, then the order you attached them in.
+- **Checks per repo:** each repo uses its own commands, and its worktree sits beside it.
 - **Contract review:** after the last unit, one reviewer reads every repo's diff together and
   must say whether producers and consumers agree on field names, types, status codes and error
   shapes. A disagreement is a blocker.
@@ -403,41 +395,10 @@ Order: backend, client, frontend, tests. One Draft-MR stack per repo, linked tog
 
 ---
 
-## 9. Product umbrellas
+## 9. Parking, answering, and resuming
 
-If your repos live in a product umbrella, a git repo with `workspace-repos.json`, `repos/` and
-`domain-context/` (for example `~/storable/aidlc-umbrella`), register the umbrella once:
-
-```text
-/egm:egm-init add-umbrella ~/storable/aidlc-umbrella
-```
-
-What that changes:
-
-- **The manifest is the repo list.** `workspace-repos.json` declares the repos and where their
-  checkouts live under `repos/`. Re-read it with `/egm:egm-init sync-umbrella` after it changes.
-- **Nothing is duplicated.** The umbrella's `domain-context/` is linked. Its AIDLC CodeKB,
-  `aidlc/spaces/<space>/codekb/<repo>/`, is read as a seed, read-only, and every reused claim is
-  checked against the code.
-- **The umbrella is read-only to EGM.** It never writes to `domain-context/`, `product-specs/`,
-  `aidlc/`, `.aidlc/`, `.claude/`, `.codex/` or `workspace-repos.json`, and it never scans
-  `product-specs/`. A feature spec is read only when the ticket names its exact path.
-- **Worktrees go in the ignored folder:** `<umbrella>/repos/.worktrees/<KEY>/<repo>`. Commits and
-  MRs belong to the application repos, never to the umbrella.
-- **Duplicate checkouts:** if a repo exists both under `~/storable/<repo>` and under the
-  umbrella's `repos/`, `add-umbrella` detects it by remote URL and asks which to keep. Keep one,
-  so work is not split across two checkouts.
-- **Missing checkouts** are reported, not cloned. Run the umbrella's `bin/setup`.
-
-If the umbrella runs its own AIDLC hooks in your session and one blocks an action, the run stops
-and reports it. It never works around a hook.
-
----
-
-## 10. Parking, answering, and resuming
-
-A run parks when it cannot safely continue without you: a weak ticket, a blocker, a multi-repo
-choice, a failed spec, a failed unit, or the high-lane spec gate.
+A run parks when it cannot safely continue without you: a weak ticket, a blocker, a failed
+spec, a failed unit, or the high-lane spec gate.
 
 What a park does:
 
@@ -458,7 +419,7 @@ source, the file or the Jira comment author.
 
 ---
 
-## 11. Handing off to another session or person
+## 10. Handing off to another session or person
 
 Run state lives in `~/.egm/runs/<KEY>/`, not in the repo, so any Claude Code session on the same
 machine can resume it:
@@ -475,13 +436,13 @@ folder can contain ticket text, so keep it out of shared folders.
 
 ---
 
-## 12. Configuration reference
+## 11. Configuration reference
 
 Two files:
 
 - `egm-autopilot.config.yaml`: at the target repo root if it exists, otherwise the plugin default.
-- `~/.egm/workspace.yaml`: your repo registry. It takes precedence over the `repos:` block in the
-  config.
+- `~/.egm/workspace.yaml`: your optional repo registry (short names for `--repos`). It takes
+  precedence over the `repos:` block in the config.
 
 Keys you are most likely to change:
 
@@ -503,8 +464,8 @@ loops:
   code_max_rounds: 2                # code review rounds before a Draft with findings
   fix_max_attempts: 3               # fix attempts per failing check
 
-multi_repo:
-  mode: ask                         # ask | primary_only | auto
+multi_repo:                         # opt-in: only repos you attach with --repos change
+  suggest: true                     # list likely affected repos as follow-ups; never attaches
   max_repos: 4                      # including the primary
 
 units:
@@ -528,21 +489,23 @@ ticket), and `git.protected_branches`.
 
 ---
 
-## 13. Safety rules and guardrails
+## 12. Safety rules and guardrails
 
 Defense in depth. The real controls are server-side: protected branches and your GitLab
 permissions.
 
 - **Jira content is untrusted input.** Ticket text, comments and attachments can contain
   instructions. They are logged and ignored, and suspicious ones park the run.
-- **Guard hook** (`.claude-plugin/hooks/guard.sh`, a Bash pre-tool hook). It blocks:
+- **Guard hook** (`.claude-plugin/hooks/guard.sh`, a Bash pre-tool hook). It is active only in a
+  session where an autopilot run is in progress (the run marks it with `egm_home.sh activate`
+  and clears it when it stops), so it does not affect your other Claude Code work. It blocks:
   - force pushes;
-  - pushes to `main`, `master`, `develop` or `release`;
+  - pushes to `main`, `master`, `develop` or `release` (including `refs/heads/...` refspecs);
   - `glab mr merge` and `glab mr approve`, including the equivalent `glab api` calls;
   - bypassing git hooks or signing (`--no-verify`, `--no-gpg-sign`);
   - commits without `Co-Authored-By: Claude <model> <noreply@anthropic.com>`;
   - `curl` calls that reference `.env`, `id_rsa` or `.aws/credentials`, and `rm -rf` of home-level paths.
-  If the input cannot be parsed, it fails closed.
+  During a run, if the input cannot be parsed (for example `jq` is missing), it fails closed.
 - **Commit attribution.** Every commit carries the Claude co-author line naming the model.
 - **No merges, approvals or force-pushes**, ever. Merging is yours.
 - **Budgets.** `budgets` caps time and changed files per ticket, and the run parks when it hits
@@ -551,7 +514,7 @@ permissions.
 
 ---
 
-## 14. Where things are stored
+## 13. Where things are stored
 
 | What | Where | Committed? |
 |---|---|---|
@@ -559,7 +522,7 @@ permissions.
 | Run state per ticket | `~/.egm/runs/<KEY>/` | no |
 | Learnings (categories only) | `~/.egm/learnings.md` | no |
 | Units, commits, MR branches | `ai/<KEY>-<slug>[-u<n>]` in each repo | yes, pushed to GitLab |
-| Worktrees (umbrella) | `<umbrella>/repos/.worktrees/<KEY>/` | no, gitignored |
+| Worktrees | `<repo-parent>/<repo>-<KEY>`, beside each repo | no |
 | Spec | `<run-dir>/spec.md`, or `docs/designs/<KEY>-<slug>.md` in the repo if it has that folder | the design doc, if copied |
 | Plugin config defaults | `skills/egm_autopilot/egm-autopilot.config.yaml` | yes |
 
@@ -567,7 +530,7 @@ The run folder is outside every repo on purpose. Nothing in it gets committed by
 
 ---
 
-## 15. Troubleshooting
+## 14. Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -577,22 +540,22 @@ The run folder is outside every repo on purpose. Nothing in it gets committed by
 | Knowledge shows `stale` | the repo has new commits | `/egm:egm-init refresh <name>` |
 | `glab` says no known GitLab host | the remote host is not recognised | `GITLAB_HOST=gitlab.com` before the command |
 | Secret scan skipped | `gitleaks` not installed | install it; until then the run says so |
-| Repo missing from the scope prompt | not registered, and not on disk beside the primary | `/egm:egm-init add <path>` |
-| Duplicate checkouts | the same repo under two paths | keep one; `add-umbrella` reports duplicates |
+| Another repo was not changed | it was not attached | rerun or `--resume` with `--repos <name or path>` |
+| "not a registered repo or a directory" | a `--repos` entry is neither a registry name nor a path | pass the checkout's path, or `/egm:egm-init add <path>` |
 | A reviewer cannot read its persona | the read-approval hook did not run | check `docs/claude.md` (Cowork and headless notes) |
-| A hook blocked a command | the guard or an umbrella hook matched | read the message; do not bypass it |
+| A hook blocked a command | the guard or another hook matched | read the message; do not bypass it |
 
 ---
 
-## 16. Limits and status
+## 15. Limits and status
 
 - **Not yet run end to end on a live ticket.** The behavior is specified in the skill
   instructions and the references under `skills/egm_autopilot/references/`. Start with
   `--dry-run` and read the plan before any real run.
 - **Knowledge quality** depends on the model reading each repo. Check the first `overview.md`
   and `contracts.md` it writes, and correct them by hand.
-- **Cross-repo consumer discovery** is a search for usages, so it can miss dynamic or indirect
-  consumers. That is why the repo list is confirmed with you.
+- **Repo suggestions** come from a search for usages, so they can miss dynamic or indirect
+  consumers. That is why only you attach repos.
 - **A consumer unit** can build against its producer's unmerged branch. The MRs show the
   dependency and merge order, but nothing enforces the order.
 - **Learnings** only record categories, so they show patterns, not detail.
