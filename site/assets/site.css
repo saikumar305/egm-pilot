@@ -170,6 +170,7 @@ main, .footer { max-width: var(--max); margin: 0 auto; padding: 0 clamp(1rem, 4v
 .skill-group { --tone: var(--elephant); }
 .skill-group.keep-docs-honest { --tone: #9b5cf0; }
 .skill-group.ship-the-change { --tone: var(--goldfish); }
+.skill-group.get-started { --tone: var(--green); }
 .skill-group > h3 { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: 1.1rem; }
 .skill-group > h3::before { content: ""; width: 1.5rem; height: 3px; border-radius: 3px; background: var(--tone); }
 .group-blurb { margin: 0.25rem 0 1rem; color: var(--muted); }

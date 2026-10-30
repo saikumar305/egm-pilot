@@ -15,6 +15,9 @@ description: >-
 
 # EGM Autopilot: Jira ticket or idea -> reviewed Merge Request
 
+If the arguments are `--help` or `-h`, print the `## egm-autopilot` section of
+`${CLAUDE_PLUGIN_ROOT}/skills/egm_help/references/help.md` in a `text` code block, and stop.
+
 Read `${CLAUDE_PLUGIN_ROOT}/docs/claude.md` first. It defines how reviewers are
 spawned and isolated, and why EGM skills are followed inline instead of through
 the `Skill` tool.

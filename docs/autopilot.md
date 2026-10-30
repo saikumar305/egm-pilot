@@ -44,6 +44,7 @@ For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 
 ```text
 # from inside the repo the ticket is about
+/egm-pilot:egm-autopilot --help            # every option, with examples
 /egm-pilot:egm-init                        # optional, once per machine: create ~/.egm and register your repos
 /egm-pilot:egm-autopilot LABS-2345 --dry-run   # plan only: no push, no MR, no Jira writes
 /egm-pilot:egm-autopilot LABS-2345         # the real run, unattended

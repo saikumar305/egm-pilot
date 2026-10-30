@@ -17,6 +17,8 @@ claude plugin install egm-pilot@egm-pilot
 
 Enable the installed plugin with `claude plugin enable egm-pilot@egm-pilot`.
 Start messages with `/egm-pilot:egm-brainstorm`, `/egm-pilot:egm-draft`, or `/egm-pilot:egm-review`.
+`/egm-pilot:egm-help` lists every skill and its arguments; any skill called with
+`--help` prints its own section of `skills/egm_help/references/help.md`.
 Skills retain `disable-model-invocation: true`: their absence from automatic
 skill discovery is expected. The `Skill` tool refuses these skills, so to run
 another EGM skill (for example `egm-review-loop` or `egm-resolve` during review

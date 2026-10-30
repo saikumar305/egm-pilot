@@ -12,6 +12,9 @@ description: >-
 
 # EGM Brainstorm: Interactive Multi-Lens Ideation & Refinement
 
+If the arguments are `--help` or `-h`, print the `## egm-brainstorm` section of
+`${CLAUDE_PLUGIN_ROOT}/skills/egm_help/references/help.md` in a `text` code block, and stop.
+
 Read `${CLAUDE_PLUGIN_ROOT}/docs/claude.md` first.
 
 ## Overview

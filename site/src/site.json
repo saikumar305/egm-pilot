@@ -7,6 +7,7 @@
   "local_install_command": "claude --plugin-dir /path/to/elephant-goldfish-model",
   "copyright": "Copyright 2026 Google LLC. This is not an officially supported Google product.",
   "groups": {
+    "Get started": "Find the right skill and its options without leaving Claude Code.",
     "Shape the idea": "Go from an idea to a design that fresh reviewers could not break.",
     "Keep docs honest": "Check any document against a standard, and against the code as it is today.",
     "Ship the change": "Turn a task or an idea into reviewed Draft MRs in your repos."

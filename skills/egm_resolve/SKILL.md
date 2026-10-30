@@ -11,6 +11,9 @@ description: >-
 
 # Goldfish Review: Resolve
 
+If the arguments are `--help` or `-h`, print the `## egm-resolve` section of
+`${CLAUDE_PLUGIN_ROOT}/skills/egm_help/references/help.md` in a `text` code block, and stop.
+
 Read `${CLAUDE_PLUGIN_ROOT}/docs/claude.md` first.
 
 ## Overview

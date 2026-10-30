@@ -45,6 +45,7 @@ Requires Claude Code 2.1.271 or later. Autopilot also needs `git`, `jq`, `glab` 
 4. **Submit & Implement**: Submit the verified design doc via pull request and implement code against the approved specification.
 
 In Claude Code, commands use the `/egm-pilot:` prefix (for example `/egm-pilot:egm-brainstorm`).
+Run `/egm-pilot:egm-help` to see every skill and its options, `/egm-pilot:egm-help <skill>` for one skill, or add `--help` to any command (for example `/egm-pilot:egm-autopilot --help`).
 
 For setup details, see [Claude Code integration](docs/claude.md).
 
@@ -94,6 +95,7 @@ Knowledge is context, not truth: when it disagrees with the code, the code wins.
 
 | Skill | Command | Description |
 | :---- | :------ | :---------- |
+| **Help** | `/egm-pilot:egm-help` | Every skill with its arguments and examples; `/egm-pilot:egm-help <skill>` for one. Any skill also answers `--help`. |
 | **Autopilot** | `/egm-pilot:egm-autopilot` | Jira ticket or idea to reviewed Draft MR: unattended or `--interactive`; lanes, units, repo standards, optional attached repos, parked questions and resume. |
 | **Init** | `/egm-pilot:egm-init` | Per-user workspace: optionally registers repos and builds their knowledge. |
 | **Brainstorm** | `/egm-pilot:egm-brainstorm` | Zero-doc ideation tool using a multi-lens Goldfish shootdown swarm to stress-test early concepts. |
@@ -110,6 +112,7 @@ Knowledge is context, not truth: when it disagrees with the code, the code wins.
 .claude-plugin/        plugin manifest, Claude reviewer adapters, read-approval and guard hooks
 skills/egm_autopilot/  autopilot skill, config and references (lanes, units, repos, questions, MR template)
 skills/egm_init/       workspace skill and scripts/egm_home.sh (layout, registry, freshness)
+skills/egm_help/       egm-help and references/help.md, the --help text for every skill
 skills/egm_*/          the design-document skills
 agents/                canonical reviewer personas, shared by every adapter
 resources/             document standards and execution instructions

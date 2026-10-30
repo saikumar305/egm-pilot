@@ -11,6 +11,9 @@ description: >-
 
 # Review, Validation & Automated Remediation
 
+If the arguments are `--help` or `-h`, print the `## egm-review` section of
+`${CLAUDE_PLUGIN_ROOT}/skills/egm_help/references/help.md` in a `text` code block, and stop.
+
 Read `${CLAUDE_PLUGIN_ROOT}/docs/claude.md` first.
 
 Reviews and validates a design document through specialized reviewer personas.

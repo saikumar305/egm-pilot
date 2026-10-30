@@ -11,6 +11,9 @@ description: >-
 
 # Detect Drift In Designs and Code
 
+If the arguments are `--help` or `-h`, print the `## egm-drift-report` section of
+`${CLAUDE_PLUGIN_ROOT}/skills/egm_help/references/help.md` in a `text` code block, and stop.
+
 Read `${CLAUDE_PLUGIN_ROOT}/docs/claude.md` first.
 
 When the user asks to detect drift across all designs or a set of READMEs, the

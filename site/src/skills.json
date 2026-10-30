@@ -1,5 +1,16 @@
 [
   {
+    "name": "egm-help",
+    "group": "Get started",
+    "icon": "❓",
+    "title": "Help",
+    "command": "/egm-pilot:egm-help",
+    "purpose": "See every skill, what it is for, its arguments and examples, and the common paths through them.",
+    "use_when": "You are new to the plugin, or forgot a flag. Any skill also answers --help.",
+    "you_get": "The overview in chat, or one skill's arguments and examples.",
+    "example": "/egm-pilot:egm-help autopilot"
+  },
+  {
     "name": "egm-brainstorm",
     "group": "Shape the idea",
     "icon": "💡",
