@@ -178,13 +178,19 @@ Scope
 
 Control
   --dry-run                plan only: no commits, push, MR or task writes
+  --stop-before-push       build and review locally, then stop for your approval to push
   --resume                 continue a parked run, after you answer its questions
+
+Gates (config gates: commit, push, mr = auto | ask)
+  Interactive always asks before push and MR. Unattended parks at an ask gate with a
+  preview in ready.md; answer and --resume to push. The guard hook enforces them.
 
 Needs: git, jq, glab (logged in as you), and the Atlassian connector for Jira tasks.
 
 Examples
   /egm-pilot:egm-autopilot LABS-2345 --dry-run
   /egm-pilot:egm-autopilot LABS-2345 --interactive
+  /egm-pilot:egm-autopilot LABS-2345 --stop-before-push
   /egm-pilot:egm-autopilot LABS-2345 --resume
   /egm-pilot:egm-autopilot --idea "Let admins export invoices as CSV" --interactive
   /egm-pilot:egm-autopilot LABS-2345 --repos orders-api,web-app --base release/2.4

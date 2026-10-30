@@ -41,6 +41,13 @@ git:
 mr:
   draft: true                        # MRs open as Draft so the developer owns the publish step
 
+gates:                               # stop for the developer's approval before a step (SKILL.md, Gates)
+  commit: auto                       # auto | ask. ask: approve each unit's commits (interactive only)
+  push:   auto                       # auto | ask. ask: nothing is pushed until you approve
+  mr:     auto                       # auto | ask. ask: no MR is opened until you approve
+                                     # Interactive always asks for push and mr. The guard hook
+                                     # blocks a gated step that has no recorded approval.
+
 repos: {}                            # optional names for --repos; the per-user home (~/.egm/workspace.yaml, via /egm-pilot:egm-init) takes precedence
   # name: { path: ~/code/name, role: backend|client|frontend|tests|shared|infra|docs|other, checks: { test: "..." } }
   # Example:

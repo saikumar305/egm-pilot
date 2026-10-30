@@ -9,7 +9,8 @@ set -euo pipefail
 
 INPUT="$(cat)"
 SID="$(printf '%s' "$INPUT" | sed -nE 's/.*"session_id"[[:space:]]*:[[:space:]]*"([A-Za-z0-9-]+)".*/\1/p' | head -n 1)"
-[ -n "$SID" ] && [ -f "${EGM_HOME:-$HOME/.egm}/active/$SID" ] || exit 0
+ACTIVE="${EGM_HOME:-$HOME/.egm}/active/$SID"
+[ -n "$SID" ] && [ -f "$ACTIVE" ] || exit 0
 
 CMD="$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty')" || { echo "egm-autopilot guard: BLOCKED - cannot parse hook input" >&2; exit 2; }
 [ -z "$CMD" ] && exit 0
@@ -53,7 +54,27 @@ if printf '%s' "$LOWER" | grep -Eq 'git( [^|;&]*)? +commit( |$)' \
   fi
 fi
 
-# 6. Obvious secret exfiltration / destructive patterns
+# 6. Gates: when the run's state.json sets a gate to "ask", the step needs a recorded approval
+#    (egm_home.sh approve). Older runs activated without a run directory have no gates.
+RUN="$(cat "$ACTIVE")"
+if [ -n "$RUN" ] && [ -f "$RUN/state.json" ]; then
+  gate() {  # gate <name> <what>: block unless the gate is open or approved
+    mode="$(jq -r --arg g "$1" '.gates[$g] // "auto"' "$RUN/state.json" 2>/dev/null || echo ask)"
+    [ "$mode" = ask ] && [ ! -f "$RUN/approvals/$1" ] && \
+      block "the $1 gate is on: get the developer's approval for $2 (interactive: ask; unattended: park), then run egm_home.sh approve <session> $1"
+    return 0
+  }
+  if printf '%s' "$LOWER" | grep -Eq 'git( [^|;&]*)? +commit( |$)'; then gate commit "this commit"; fi
+  if printf '%s' "$LOWER" | grep -Eq 'git( [^|;&]*)? +push( |$)'; then gate push "this push"; fi
+  # Opening an MR: glab mr create, a push option, or a POST (or fields) to .../merge_requests.
+  if printf '%s' "$LOWER" | grep -Eq 'glab +mr +(create|new)( |$)|merge_request\.create' \
+     || { printf '%s' "$LOWER" | grep -Eq 'glab +api[^|;&]*merge_requests(["'"'"' ]|$)' \
+          && printf '%s' "$LOWER" | grep -Eq '(-x|--method)[ =]*post|( -f|--field|--raw-field|--input)[ =]'; }; then
+    gate mr "opening this MR"
+  fi
+fi
+
+# 7. Obvious secret exfiltration / destructive patterns
 if printf '%s' "$LOWER" | grep -Eq 'curl[^|;&]*(\.env|id_rsa|\.aws/credentials)|rm +-(rf|fr) +(/|~/?|\$home/?)( |$)'; then
   block "dangerous command pattern"
 fi

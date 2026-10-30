@@ -24,6 +24,7 @@ It runs in Claude Code, with a per-user workspace (`/egm-pilot:egm-init`) that t
 - **Structured questions:** when a run needs an answer it parks with a multiple-choice form (`1B 2A`) on Jira. Resume with `--resume`.
 - **Your repo's MR template:** MRs follow the repo's own `.gitlab/merge_request_templates/`. Only verified checks are ticked, and the EGM review is appended as one block.
 - **Global workspace:** `/egm-pilot:egm-init` optionally registers your repos and builds short knowledge files per repo: what it is, how to build and test it, and which contracts it exposes and consumes. Knowledge is checked against the commit it was built from and refreshed when stale.
+- **Gates:** stop for your approval before commits, pushes or opening MRs (`gates` in the config, or `--stop-before-push` for one run). Interactive always asks before push and MR; unattended parks with a preview and pushes when you resume. The guard hook enforces them.
 - **Guardrails:** a Bash hook blocks force pushes, pushes to protected branches, merging or approving MRs, hook bypasses, and commits without the Claude co-author line. Jira content is treated as untrusted input.
 - **Isolated reviewers (Goldfish):** reviewers start with no memory and see only the files in their brief, never the author's reasoning.
 
@@ -60,7 +61,7 @@ For setup details, see [Claude Code integration](docs/claude.md).
 /egm-pilot:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
 ```
 
-Options: `--idea "<text>"|<file.md>` (instead of a key), `--ticket <PROJECT>`, `--interactive` (or `--unattended` on resume), `--lane small|feature|high`, `--base <branch>`, `--repos <name|path>,...` (attach more repos; optional), `--resume`, `--dry-run`.
+Options: `--idea "<text>"|<file.md>` (instead of a key), `--ticket <PROJECT>`, `--interactive` (or `--unattended` on resume), `--lane small|feature|high`, `--base <branch>`, `--repos <name|path>,...` (attach more repos; optional), `--stop-before-push`, `--resume`, `--dry-run`.
 
 ```text
 Jira -> intake -> lane -> [attached repos] -> worktrees -> spec -> spec review -> build (units) -> code review -> Draft MRs -> you review

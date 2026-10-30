@@ -230,7 +230,8 @@ const STEPS = [
          "Across repos you get one stack per repo, each MR linking the others with the <b>merge order</b> (producer before consumer). One Jira comment lists them all.",
          "Each MR uses the <b>repo's own template</b>, with an EGM review block at the bottom: open decisions, deviations and unresolved findings, flagged with a callout at the top.",
          "Then the criterion-to-test table, check results, and follow-ups that were left out of scope.",
-         "A comment with the MR link goes on the Jira ticket."],
+         "A comment with the MR link goes on the Jira ticket.",
+         "With <b>gates</b> on (<code>--stop-before-push</code>, or <code>gates</code> in the config), it stops first: interactive asks, unattended parks with a preview and pushes when you resume."],
    who:["auto","It never merges, approves or force-pushes. A hook blocks those commands even if a ticket tries to trick it."],
    side:()=>`<h3>A stacked series</h3><p><span class="pill f">main</span> &larr; <span class="pill s">[1/3]</span> &larr; <span class="pill s">[2/3]</span> &larr; <span class="pill s">[3/3]</span><br><small>Merge in order. Small tickets raise a single MR.</small></p>
      <h3>What each MR shows</h3><p>&#9888;&#65039; Callout when decisions need you<br>&#128203; Criteria &rarr; tests &rarr; code<br>&#9989; Check results (only ones actually run)<br>&#129302; Reviewer rounds and findings</p>` },

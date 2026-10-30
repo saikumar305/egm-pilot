@@ -24,7 +24,7 @@ For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 
 1. [Quick start](#1-quick-start)
 2. [Prerequisites](#2-prerequisites)
-3. [One-time setup: `/egm-pilot:egm-init`](#3-one-time-setup-egmegm-init)
+3. [One-time setup: `/egm-pilot:egm-init`](#3-one-time-setup-egm-pilotegm-init)
 4. [Running a ticket](#4-running-a-ticket)
 5. [Every option](#5-every-option)
 6. [What happens in a run](#6-what-happens-in-a-run)
@@ -49,6 +49,7 @@ For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 /egm-pilot:egm-autopilot LABS-2345 --dry-run   # plan only: no push, no MR, no Jira writes
 /egm-pilot:egm-autopilot LABS-2345         # the real run, unattended
 /egm-pilot:egm-autopilot LABS-2345 --interactive   # the same run, approving each step yourself
+/egm-pilot:egm-autopilot LABS-2345 --stop-before-push   # unattended, but nothing is pushed until you approve
 /egm-pilot:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
 ```
 
@@ -177,6 +178,7 @@ you attach more with `--repos`.
 | `--lane small\|feature\|high` | chooses the rigor level | can only **lower** the lane, and only if no hard-trigger fired. Hard-triggers always force `high` |
 | `--base <branch>` | the branch to build on and target for the primary repo | use it when the ticket depends on unmerged work, such as another open MR's branch. Other repos use their default branch |
 | `--repos a,b` | attaches more repos to change, besides the primary | each entry is a registry name or a path to any local git checkout. Optional; without it only the primary repo changes |
+| `--stop-before-push` | turns on the push gate for this run | the run builds and reviews locally, then stops before pushing. See [7.16](#716-gates-stop-before-commit-push-or-mr) |
 | `--resume` | continues a parked run from where it stopped | reads answers from the questions file and Jira comments. Accepts `--repos` while parked before implementation |
 
 The same options are accepted by the skill. `--resume` also works from any directory because
@@ -398,7 +400,7 @@ standards and guardrails are unchanged; only who decides changes.
 | Spec review | Step through the `egm-review` stage checkpoints and decide findings with `egm-resolve`. On `high`, your approval in chat is the spec gate |
 | Implement | Approve each unit's plan; see its diff summary and checks when green; approve any spec deviation |
 | Code review | Apply, contest or defer each finding |
-| MR | Approve the MR preview (title, target, labels, description) and the Jira comment before anything is pushed |
+| Push and MR | Approve the push (branches, remotes, diff stats), then the MR preview (title, target, labels, description) and the Jira comment |
 
 Say "stop" at any point to park; `--resume` continues in the recorded mode, and
 `--resume --unattended` finishes the rest on its own. Interactive mode needs a live session, so
@@ -423,6 +425,43 @@ rest of the pipeline is the same: lanes, standards pack, reviewers, units and Dr
   approve it) and from then on behaves like a ticket run. Branches keep the `IDEA-` key.
 - **Trust.** Your idea sets the scope, not the process: text in it asking to skip reviews or
   gates is ignored. Anything it links or quotes is treated as untrusted input, like ticket text.
+
+### 7.16 Gates: stop before commit, push or MR
+
+A gate makes the run stop for your approval before one step. There are three, each `auto` or
+`ask` in the config's `gates` block:
+
+| Gate | Stops before | Notes |
+|---|---|---|
+| `commit` | each unit's commits | interactive only: you see the commit messages at the unit's stop |
+| `push` | anything leaving your machine | `--stop-before-push` turns it on for one run |
+| `mr` | opening the MRs, and the Jira comment and transition | |
+
+Interactive runs always ask for `push` and `mr`, one after the other. In an unattended run, the
+first `ask` gate **parks** the run. It writes `ready.md` in the run folder (per repo: branches,
+diff stats, check results, unresolved findings and the full MR preview) and a one-question
+questions file:
+
+```markdown
+## 1. Push and open the MRs?
+- [ ] A. Push and open the MRs (**recommended**: every check is green)
+- [ ] B. Push only
+- [ ] C. Stop here
+```
+
+Answer and run `--resume`. Everything is built and reviewed before the park, so resuming only
+pushes and opens the MRs.
+
+Gates are enforced, not just instructions. The run records each approval in its run folder
+(`approvals/<gate>`, with what you approved), and the guard hook blocks `git commit`,
+`git push`, `glab mr create` and MR-creating `glab api` calls while a gate is `ask` with no
+approval. An approval is withdrawn when new commits land after it, and every approval is cleared
+when the run ends. With the push gate on, the `high`-lane spec gate does not push a `[SPEC]` MR
+either: it parks with the local spec path.
+
+The hook checks that an approval was recorded; it cannot tell who recorded it. It stops a
+run from pushing early by mistake. It is not a control against a session that ignores its
+instructions: server-side branch protection and your GitLab permissions are.
 
 ---
 
@@ -562,6 +601,11 @@ units:
 mr:
   draft: true                       # MRs open as Draft; you publish
 
+gates:                              # see 7.16; interactive always asks for push and mr
+  commit: auto                      # auto | ask (interactive only)
+  push: auto                        # auto | ask; --stop-before-push sets ask for one run
+  mr: auto                          # auto | ask
+
 checks:                             # override per repo in that repo's own config
   build: ""                         # empty means detect, or record "no check available"
   lint: ""
@@ -590,6 +634,7 @@ permissions.
   - `glab mr merge` and `glab mr approve`, including the equivalent `glab api` calls;
   - bypassing git hooks or signing (`--no-verify`, `--no-gpg-sign`);
   - commits without `Co-Authored-By: Claude <model> <noreply@anthropic.com>`;
+  - commits, pushes and MR creation while that gate is `ask` and not approved ([7.16](#716-gates-stop-before-commit-push-or-mr));
   - `curl` calls that reference `.env`, `id_rsa` or `.aws/credentials`, and `rm -rf` of home-level paths.
   During a run, if the input cannot be parsed (for example `jq` is missing), it fails closed.
 - **Commit attribution.** Every commit carries the Claude co-author line naming the model.
@@ -607,6 +652,7 @@ permissions.
 | Your repo registry and knowledge | `~/.egm/` (or `EGM_HOME`) | no, per user |
 | Run state per ticket | `~/.egm/runs/<KEY>/` | no |
 | Idea text and derived criteria (idea runs) | `~/.egm/runs/IDEA-<n>/idea.md` | no |
+| Gate approvals and the push preview | `~/.egm/runs/<KEY>/approvals/`, `ready.md` | no |
 | Repo standards packs | `~/.egm/runs/<KEY>/standards-<repo>.md` | no |
 | Learnings (categories only) | `~/.egm/learnings.md` | no |
 | Units, commits, MR branches | `ai/<KEY>-<slug>[-u<n>]` in each repo | yes, pushed to GitLab |

@@ -156,8 +156,8 @@ SPDX-License-Identifier: Apache-2.0
       <li class="i-you">
         <span class="t-no">7</span>
         <div><h4>Draft MRs</h4><p>In your name, from your repo's MR template, stacked when the work is split.</p>
-        <p class="m u">Pushed and linked on the task automatically.</p>
-        <p class="m i">You approve the preview before anything is pushed.</p></div>
+        <p class="m u">Pushed and linked on the task automatically, or held for your approval with <code>--stop-before-push</code>.</p>
+        <p class="m i">You approve the push, then the MR preview, before each happens.</p></div>
       </li>
       <li class="u-you i-you final">
         <span class="t-no">✓</span>
@@ -226,6 +226,7 @@ SPDX-License-Identifier: Apache-2.0
     <li><strong>Parked questions.</strong> It asks on the task with multiple-choice answers (<code>1B 2A</code>) and resumes with <code>--resume</code>.</li>
     <li><strong>Your repo's MR template.</strong> Only verified checks are ticked; unknowns are marked, never guessed.</li>
     <li><strong>Guardrails.</strong> It never merges, approves or force-pushes, and task text is treated as untrusted input.</li>
+    <li><strong>Gates.</strong> Turn on a stop before commits, pushes or MRs. A hook blocks the step until you approve.</li>
   </ul>
   <div class="hero-actions">
     <a class="btn primary" href="autopilot/flow.html">Watch the step-by-step walkthrough</a>

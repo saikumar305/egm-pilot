@@ -16,8 +16,14 @@
 #                                    create its run directory
 #   egm_home.sh resolve <name|path>  resolve a --repos entry (registry name, or a path to any
 #                                    git checkout) to name<TAB>path<TAB>role
-#   egm_home.sh activate <session>   mark an autopilot run active for the guard hook
+#   egm_home.sh activate <session> [<run-dir>]
+#                                    mark an autopilot run active for the guard hook; with
+#                                    <run-dir>, the guard also enforces that run's gates
 #   egm_home.sh deactivate <session> clear that mark
+#   egm_home.sh approve <session> <commit|push|mr> [note]
+#                                    record the developer's approval for a gate of the active run
+#   egm_home.sh revoke <session> [<gate>]
+#                                    withdraw one approval, or all of them
 set -euo pipefail
 
 HOME_DIR="${EGM_HOME:-$HOME/.egm}"
@@ -130,9 +136,26 @@ EOF
 
   activate|deactivate)
     sid="${1:-}"; [[ "$sid" =~ ^[A-Za-z0-9-]+$ ]] || die "bad session id: '$sid'"
-    if [ "$cmd" = activate ]; then mkdir -p "$HOME_DIR/active"; : > "$HOME_DIR/active/$sid"
+    if [ "$cmd" = activate ]; then
+      run="${2:-}"
+      if [ -n "$run" ]; then [ -d "$run" ] || die "no such run directory: $run"; run="$(cd "$run" && pwd -P)"; fi
+      mkdir -p "$HOME_DIR/active"; printf '%s' "$run" > "$HOME_DIR/active/$sid"
     else rm -f "$HOME_DIR/active/$sid"; fi
     ;;
 
-  *) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+  approve|revoke)
+    sid="${1:-}"; [[ "$sid" =~ ^[A-Za-z0-9-]+$ ]] || die "bad session id: '$sid'"
+    gate="${2:-}"
+    [ -f "$HOME_DIR/active/$sid" ] || die "no active run for session $sid"
+    run="$(cat "$HOME_DIR/active/$sid")"; [ -n "$run" ] || die "the active run has no run directory (activate <session> <run-dir>)"
+    if [ "$cmd" = revoke ] && [ -z "$gate" ]; then rm -rf "$run/approvals"; exit 0; fi
+    case "$gate" in commit|push|mr) ;; *) die "gate must be commit, push or mr: '$gate'" ;; esac
+    if [ "$cmd" = approve ]; then
+      mkdir -p "$run/approvals"
+      jq -n --arg gate "$gate" --arg at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg note "${3:-}" \
+        '{gate:$gate, approved_at:$at, note:$note}' > "$run/approvals/$gate"
+    else rm -f "$run/approvals/$gate"; fi
+    ;;
+
+  *) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac
