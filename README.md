@@ -1,20 +1,20 @@
-# Elephant-Goldfish Model (EGM)
+# EGM Pilot
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Website](https://img.shields.io/badge/Website-egm.dev-black.svg)](https://egm.dev)
 
-Elephant-Goldfish Model (EGM) is an open-source plugin for Spec-Driven Development with AI coding agents. Deep-context Elephant sessions draft specifications, and isolated zero-context Goldfish subagents stress-test them before you write code.
+EGM Pilot is an open-source Claude Code plugin, built on the Elephant-Goldfish Model (EGM), for Spec-Driven Development with AI coding agents. It extends [EGM](https://egm.dev) with Autopilot: a task or an idea to a reviewed Draft merge request. Deep-context Elephant sessions draft specifications, and isolated zero-context Goldfish subagents stress-test them before you write code.
 
-EGM now runs in two modes:
+EGM Pilot runs in two modes:
 
 - **Spec-driven development:** brainstorm, draft, and review a design doc with isolated Goldfish reviewers.
 - **EGM Autopilot:** take an assigned Jira ticket, or an idea (`--idea`), to a reviewed, Draft merge request, in your own name. Run it unattended, with a single human step at the end, or with `--interactive` as a live Q&A session where you answer and approve each step.
 
-It runs in Claude Code, with a per-user workspace (`/egm:egm-init`) that teaches it your repositories.
+It runs in Claude Code, with a per-user workspace (`/egm-pilot:egm-init`) that teaches it your repositories.
 
 ## Features
 
-- **Jira ticket to Draft MR:** `/egm:egm-autopilot <KEY>` runs intake, risk-based triage, a spec, tests-first implementation, isolated code review, and opens the MR. You review and merge.
+- **Jira ticket to Draft MR:** `/egm-pilot:egm-autopilot <KEY>` runs intake, risk-based triage, a spec, tests-first implementation, isolated code review, and opens the MR. You review and merge.
 - **Ticket or idea:** `--idea "<text>"` (or a Markdown file) starts without a ticket; with `--interactive` it begins with a brainstorm dialogue. `--ticket <PROJECT>` files a Jira issue once the spec is reviewed.
 - **Two modes, one pipeline:** unattended (parks when it needs you) or `--interactive` (spec dialogue, section approvals, per-unit approval, you decide each review finding, MR preview before push).
 - **Reviewed against your repo's standards:** each run builds a standards pack per repo from its `CLAUDE.md`/`AGENTS.md`, `CONTRIBUTING`, style guides, lint config and the conventions in nearby code. The code follows it, and the `egm-code-quality` reviewer checks every diff against it.
@@ -23,7 +23,7 @@ It runs in Claude Code, with a per-user workspace (`/egm:egm-init`) that teaches
 - **Units and stacked MRs:** large tickets are split into small units, each built and reviewed on its own, and raised as a stack of linked Draft MRs (`KEY [1/3]`, `[2/3]`, ...).
 - **Structured questions:** when a run needs an answer it parks with a multiple-choice form (`1B 2A`) on Jira. Resume with `--resume`.
 - **Your repo's MR template:** MRs follow the repo's own `.gitlab/merge_request_templates/`. Only verified checks are ticked, and the EGM review is appended as one block.
-- **Global workspace:** `/egm:egm-init` optionally registers your repos and builds short knowledge files per repo: what it is, how to build and test it, and which contracts it exposes and consumes. Knowledge is checked against the commit it was built from and refreshed when stale.
+- **Global workspace:** `/egm-pilot:egm-init` optionally registers your repos and builds short knowledge files per repo: what it is, how to build and test it, and which contracts it exposes and consumes. Knowledge is checked against the commit it was built from and refreshed when stale.
 - **Guardrails:** a Bash hook blocks force pushes, pushes to protected branches, merging or approving MRs, hook bypasses, and commits without the Claude co-author line. Jira content is treated as untrusted input.
 - **Isolated reviewers (Goldfish):** reviewers start with no memory and see only the files in their brief, never the author's reasoning.
 
@@ -31,11 +31,11 @@ It runs in Claude Code, with a per-user workspace (`/egm:egm-init`) that teaches
 
 | Harness | Install |
 | :--- | :--- |
-| **Claude Code** | `claude plugin marketplace add google/elephant-goldfish-model && claude plugin install egm@egm` |
-| **Local copy** | `claude --plugin-dir /path/to/elephant-goldfish-model` (use a uniquely named copy if an `egm` plugin is already installed) |
+| **Claude Code** | `claude plugin marketplace add OWNER/REPO && claude plugin install egm-pilot@egm-pilot` |
+| **Local copy** | `claude --plugin-dir /path/to/elephant-goldfish-model` (commands use the `/egm-pilot:` prefix, so it can sit beside the original `egm` plugin) |
 | **Claude Cowork** | See [Claude Code integration](docs/claude.md#claude-cowork) |
 
-Requires Claude Code 2.1.271 or later. Autopilot also needs `git`, `jq`, `glab` (logged in as you), and the Atlassian connector in Claude Code.
+Replace `OWNER/REPO` with the repository this plugin is published from. Requires Claude Code 2.1.271 or later. Autopilot also needs `git`, `jq`, `glab` (logged in as you), and the Atlassian connector in Claude Code.
 
 ## Quickstart
 
@@ -44,19 +44,19 @@ Requires Claude Code 2.1.271 or later. Autopilot also needs `git`, `jq`, `glab` 
 3. **Review & Resolve**: Run `/egm-review docs/designs/<feature>.md` to run the multi-stage Goldfish reviewer swarm.
 4. **Submit & Implement**: Submit the verified design doc via pull request and implement code against the approved specification.
 
-In Claude Code, commands use the `/egm:` prefix (for example `/egm:egm-brainstorm`).
+In Claude Code, commands use the `/egm-pilot:` prefix (for example `/egm-pilot:egm-brainstorm`).
 
 For setup details, see [Claude Code integration](docs/claude.md).
 
 ## EGM Autopilot: Jira ticket to reviewed MR
 
 ```text
-/egm:egm-init                                # once per machine: register your repos
-/egm:egm-autopilot LABS-2345 --dry-run       # plan only: no push, no MR, no Jira writes
-/egm:egm-autopilot LABS-2345                 # the real run, unattended
-/egm:egm-autopilot LABS-2345 --interactive   # the same run as a live Q&A session
-/egm:egm-autopilot LABS-2345 --resume        # continue after answering a parked question
-/egm:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
+/egm-pilot:egm-init                                # once per machine: register your repos
+/egm-pilot:egm-autopilot LABS-2345 --dry-run       # plan only: no push, no MR, no Jira writes
+/egm-pilot:egm-autopilot LABS-2345                 # the real run, unattended
+/egm-pilot:egm-autopilot LABS-2345 --interactive   # the same run as a live Q&A session
+/egm-pilot:egm-autopilot LABS-2345 --resume        # continue after answering a parked question
+/egm-pilot:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
 ```
 
 Options: `--idea "<text>"|<file.md>` (instead of a key), `--ticket <PROJECT>`, `--interactive` (or `--unattended` on resume), `--lane small|feature|high`, `--base <branch>`, `--repos <name|path>,...` (attach more repos; optional), `--resume`, `--dry-run`.
@@ -69,7 +69,7 @@ The full how-to is in [docs/autopilot.md](docs/autopilot.md), and a step-by-step
 
 **Status:** the skill and its references are written, but autopilot has not yet run end to end on a live ticket. Start with `--dry-run`.
 
-## Workspace: `/egm:egm-init`
+## Workspace: `/egm-pilot:egm-init`
 
 The per-user workspace lives in `~/.egm` (override with `EGM_HOME`). It contains:
 
@@ -79,10 +79,10 @@ The per-user workspace lives in `~/.egm` (override with `EGM_HOME`). It contains
 - `runs/<KEY>/`: state for each ticket run, so `--resume` works from any directory.
 
 ```text
-/egm:egm-init                                  # create ~/.egm and offer to add the current repo
-/egm:egm-init add ~/code/orders-api            # register a repo (role inferred, you confirm)
-/egm:egm-init refresh --all                    # rebuild knowledge for repos that changed
-/egm:egm-init status                           # repos, freshness and run count
+/egm-pilot:egm-init                                  # create ~/.egm and offer to add the current repo
+/egm-pilot:egm-init add ~/code/orders-api            # register a repo (role inferred, you confirm)
+/egm-pilot:egm-init refresh --all                    # rebuild knowledge for repos that changed
+/egm-pilot:egm-init status                           # repos, freshness and run count
 ```
 
 Add these permission rules so Claude does not prompt on every read of the workspace:
@@ -94,15 +94,15 @@ Knowledge is context, not truth: when it disagrees with the code, the code wins.
 
 | Skill | Command | Description |
 | :---- | :------ | :---------- |
-| **Autopilot** | `/egm:egm-autopilot` | Jira ticket or idea to reviewed Draft MR: unattended or `--interactive`; lanes, units, repo standards, optional attached repos, parked questions and resume. |
-| **Init** | `/egm:egm-init` | Per-user workspace: optionally registers repos and builds their knowledge. |
-| **Brainstorm** | `/egm:egm-brainstorm` | Zero-doc ideation tool using a multi-lens Goldfish shootdown swarm to stress-test early concepts. |
-| **Draft** | `/egm:egm-draft` | Iterative, section-by-section markdown design specification compiler. |
-| **Review** | `/egm:egm-review` | Multi-stage verification pipeline orchestrator (Zoom Out -> Comprehension -> Critic -> Readiness). |
-| **Review Loop** | `/egm:egm-review-loop` | Concurrent review subagent dispatch engine supporting direct and hierarchical dispatch. |
-| **Review Resolve** | `/egm:egm-resolve` | Interactive triage and automated patch application engine for review findings. |
-| **Drift Report** | `/egm:egm-drift-report` | Sequential AST scanner detecting divergence between checked-in specs and live code. |
-| **Bootstrap** | `/egm:egm-bootstrap` | Recursive bottom-up codebase documentation generator and sentinel-block upserting engine. |
+| **Autopilot** | `/egm-pilot:egm-autopilot` | Jira ticket or idea to reviewed Draft MR: unattended or `--interactive`; lanes, units, repo standards, optional attached repos, parked questions and resume. |
+| **Init** | `/egm-pilot:egm-init` | Per-user workspace: optionally registers repos and builds their knowledge. |
+| **Brainstorm** | `/egm-pilot:egm-brainstorm` | Zero-doc ideation tool using a multi-lens Goldfish shootdown swarm to stress-test early concepts. |
+| **Draft** | `/egm-pilot:egm-draft` | Iterative, section-by-section markdown design specification compiler. |
+| **Review** | `/egm-pilot:egm-review` | Multi-stage verification pipeline orchestrator (Zoom Out -> Comprehension -> Critic -> Readiness). |
+| **Review Loop** | `/egm-pilot:egm-review-loop` | Concurrent review subagent dispatch engine supporting direct and hierarchical dispatch. |
+| **Review Resolve** | `/egm-pilot:egm-resolve` | Interactive triage and automated patch application engine for review findings. |
+| **Drift Report** | `/egm-pilot:egm-drift-report` | Sequential AST scanner detecting divergence between checked-in specs and live code. |
+| **Bootstrap** | `/egm-pilot:egm-bootstrap` | Recursive bottom-up codebase documentation generator and sentinel-block upserting engine. |
 
 ## Layout
 

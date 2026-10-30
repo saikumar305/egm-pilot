@@ -24,7 +24,7 @@ HOME_DIR="${EGM_HOME:-$HOME/.egm}"
 REGISTRY="$HOME_DIR/workspace.yaml"
 
 die() { echo "egm_home: $*" >&2; exit 1; }
-need_registry() { [ -f "$REGISTRY" ] || die "not initialised: $REGISTRY not found (run /egm:egm-init)"; }
+need_registry() { [ -f "$REGISTRY" ] || die "not initialised: $REGISTRY not found (run /egm-pilot:egm-init)"; }
 
 # Read the registry (flat format written by egm-init): one repo per block, one key per line.
 repos() {
@@ -47,7 +47,7 @@ case "$cmd" in
   init)
     mkdir -p "$HOME_DIR/knowledge" "$HOME_DIR/runs"
     [ -f "$REGISTRY" ] || cat > "$REGISTRY" <<'EOF'
-# EGM workspace registry (per user). Managed by /egm:egm-init; safe to edit by hand.
+# EGM workspace registry (per user). Managed by /egm-pilot:egm-init; safe to edit by hand.
 # Keep the exact shape: one repo per block, two-space name line, four-space keys, one key per line.
 # role: shared | backend | client | frontend | tests | infra | docs | other
 version: 1
@@ -58,7 +58,7 @@ repos: {}
 #     role: backend
 #     base: main
 EOF
-    [ -f "$HOME_DIR/map.md" ] || printf '# Cross-repo map\n\nWho exposes and who consumes which contract. Built by /egm:egm-init.\n' > "$HOME_DIR/map.md"
+    [ -f "$HOME_DIR/map.md" ] || printf '# Cross-repo map\n\nWho exposes and who consumes which contract. Built by /egm-pilot:egm-init.\n' > "$HOME_DIR/map.md"
     [ -f "$HOME_DIR/learnings.md" ] || printf '# Learnings\n\nRecurring park reasons and findings, by category. No ticket text.\n' > "$HOME_DIR/learnings.md"
     echo "$HOME_DIR"
     ;;

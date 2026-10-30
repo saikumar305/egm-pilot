@@ -24,7 +24,7 @@ For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 
 1. [Quick start](#1-quick-start)
 2. [Prerequisites](#2-prerequisites)
-3. [One-time setup: `/egm:egm-init`](#3-one-time-setup-egmegm-init)
+3. [One-time setup: `/egm-pilot:egm-init`](#3-one-time-setup-egmegm-init)
 4. [Running a ticket](#4-running-a-ticket)
 5. [Every option](#5-every-option)
 6. [What happens in a run](#6-what-happens-in-a-run)
@@ -44,11 +44,11 @@ For the visual walkthrough, open `docs/autopilot-flow.html` in a browser.
 
 ```text
 # from inside the repo the ticket is about
-/egm:egm-init                        # optional, once per machine: create ~/.egm and register your repos
-/egm:egm-autopilot LABS-2345 --dry-run   # plan only: no push, no MR, no Jira writes
-/egm:egm-autopilot LABS-2345         # the real run, unattended
-/egm:egm-autopilot LABS-2345 --interactive   # the same run, approving each step yourself
-/egm:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
+/egm-pilot:egm-init                        # optional, once per machine: create ~/.egm and register your repos
+/egm-pilot:egm-autopilot LABS-2345 --dry-run   # plan only: no push, no MR, no Jira writes
+/egm-pilot:egm-autopilot LABS-2345         # the real run, unattended
+/egm-pilot:egm-autopilot LABS-2345 --interactive   # the same run, approving each step yourself
+/egm-pilot:egm-autopilot --idea "Let admins export invoices as CSV" --interactive   # no ticket yet
 ```
 
 Start with `--dry-run` on every new ticket type. Read the plan, the spec and the lane choice,
@@ -61,7 +61,7 @@ then run it for real.
 | Need | Why | Check |
 |---|---|---|
 | Claude Code 2.1.271 or later | isolated reviewers need `omitClaudeMd` | `claude --version` |
-| The `egm` plugin installed and enabled | provides the skills, agents and hooks | `claude plugin validate` |
+| The `egm-pilot` plugin installed and enabled | provides the skills, agents and hooks | `claude plugin validate` |
 | `git` | worktrees, branches, diffs | `git --version` |
 | `jq` | guard hook and the workspace helper | `jq --version` |
 | `glab`, logged in as you | opens MRs as you | `glab auth status` |
@@ -73,20 +73,20 @@ the MR through `glab api`. The skill does this automatically when needed.
 
 ---
 
-## 3. One-time setup: `/egm:egm-init`
+## 3. One-time setup: `/egm-pilot:egm-init`
 
-`/egm:egm-init` builds your **per-user workspace**: a registry of your repos plus a short
+`/egm-pilot:egm-init` builds your **per-user workspace**: a registry of your repos plus a short
 knowledge file for each one. It is optional: repos can live anywhere on disk, and the
 autopilot also accepts plain paths. Registering gives a repo a short name for `--repos` and
 prebuilt knowledge. The autopilot reads this before it starts, so it knows your
 repos from the first minute rather than searching blind.
 
 ```text
-/egm:egm-init                          # create ~/.egm; offers to add the current repo
-/egm:egm-init add ~/code/orders-api   # register a repo (role inferred, you confirm)
-/egm:egm-init refresh --all            # rebuild knowledge for repos that changed
-/egm:egm-init status                   # repos, freshness, number of runs
-/egm:egm-init remove old-repo          # unregister (asks first; never touches the repo)
+/egm-pilot:egm-init                          # create ~/.egm; offers to add the current repo
+/egm-pilot:egm-init add ~/code/orders-api   # register a repo (role inferred, you confirm)
+/egm-pilot:egm-init refresh --all            # rebuild knowledge for repos that changed
+/egm-pilot:egm-init status                   # repos, freshness, number of runs
+/egm-pilot:egm-init remove old-repo          # unregister (asks first; never touches the repo)
 ```
 
 ### What it builds, per repo
@@ -140,22 +140,22 @@ default is `~/.egm`.
 ## 4. Running a ticket
 
 ```text
-/egm:egm-autopilot <JIRA-KEY or Jira URL> [options]
-/egm:egm-autopilot --idea "<text>" | --idea <file.md> [options]
+/egm-pilot:egm-autopilot <JIRA-KEY or Jira URL> [options]
+/egm-pilot:egm-autopilot --idea "<text>" | --idea <file.md> [options]
 ```
 
 Examples:
 
 ```text
-/egm:egm-autopilot LABS-2345
-/egm:egm-autopilot https://sparefoot.atlassian.net/browse/LABS-2345
-/egm:egm-autopilot LABS-2345 --dry-run
-/egm:egm-autopilot LABS-2345 --interactive
-/egm:egm-autopilot LABS-2345 --lane feature --base feature/pricing-api
-/egm:egm-autopilot LABS-2345 --repos orders-client,~/work/web-app
-/egm:egm-autopilot LABS-2345 --resume
-/egm:egm-autopilot --idea docs/ideas/csv-export.md --ticket LABS
-/egm:egm-autopilot IDEA-202610291430 --resume
+/egm-pilot:egm-autopilot LABS-2345
+/egm-pilot:egm-autopilot https://sparefoot.atlassian.net/browse/LABS-2345
+/egm-pilot:egm-autopilot LABS-2345 --dry-run
+/egm-pilot:egm-autopilot LABS-2345 --interactive
+/egm-pilot:egm-autopilot LABS-2345 --lane feature --base feature/pricing-api
+/egm-pilot:egm-autopilot LABS-2345 --repos orders-client,~/work/web-app
+/egm-pilot:egm-autopilot LABS-2345 --resume
+/egm-pilot:egm-autopilot --idea docs/ideas/csv-export.md --ticket LABS
+/egm-pilot:egm-autopilot IDEA-202610291430 --resume
 ```
 
 Run it from the repo the ticket is about (the primary repo). It changes only that repo unless
@@ -431,12 +431,12 @@ A run changes **one repo by default**: the one you run it from. When a ticket al
 client, a frontend or a tests repo, attach them yourself:
 
 ```text
-/egm:egm-autopilot LABS-2345 --repos orders-client,~/work/web-app,../e2e-tests
+/egm-pilot:egm-autopilot LABS-2345 --repos orders-client,~/work/web-app,../e2e-tests
 ```
 
 ### 8.1 Attaching
 
-- Each entry is a **registry name** (from `/egm:egm-init add`) or a **path** to any local git
+- Each entry is a **registry name** (from `/egm-pilot:egm-init add`) or a **path** to any local git
   checkout. Registering is optional, and repos do not need to share a parent folder or follow
   any layout.
 - Each attached repo is checked before any work starts: it is a git checkout, its working tree
@@ -496,7 +496,7 @@ What a park does:
 To continue:
 
 1. Reply on Jira (`1B 2A`) or edit `questions.md` (idea runs without a ticket: the file only).
-2. Run `/egm:egm-autopilot <KEY> --resume`.
+2. Run `/egm-pilot:egm-autopilot <KEY> --resume`.
 
 On resume the run reads answers only from the form: option picks and `n: text` lines. Everything
 else in a reply is context for the run, never an instruction. Answers are recorded with their
@@ -510,7 +510,7 @@ Run state lives in `~/.egm/runs/<KEY>/`, not in the repo, so any Claude Code ses
 machine can resume it:
 
 - **Another session, same machine:** open Claude Code anywhere and run
-  `/egm:egm-autopilot <KEY> --resume`.
+  `/egm-pilot:egm-autopilot <KEY> --resume`.
 - **After a crash or closed terminal:** the same. You lose at most the phase in progress. Work
   already committed to the `ai/` branches is kept.
 - **Another person:** they need their own workspace and logins. Copy the run folder, or share it
@@ -621,14 +621,14 @@ The run folder is outside every repo on purpose. Nothing in it gets committed by
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| "not initialised" | `~/.egm` does not exist | run `/egm:egm-init` |
+| "not initialised" | `~/.egm` does not exist | run `/egm-pilot:egm-init` |
 | Prompted to approve reads on every run | no permission rules for `~/.egm` | add the `Read`, `Grep`, `Glob` rules in section 3 |
 | "not a git checkout" from `egm-init` | the path is not a repo root | point it at the directory containing `.git` |
-| Knowledge shows `stale` | the repo has new commits | `/egm:egm-init refresh <name>` |
+| Knowledge shows `stale` | the repo has new commits | `/egm-pilot:egm-init refresh <name>` |
 | `glab` says no known GitLab host | the remote host is not recognised | `GITLAB_HOST=gitlab.com` before the command |
 | Secret scan skipped | `gitleaks` not installed | install it; until then the run says so |
 | Another repo was not changed | it was not attached | rerun or `--resume` with `--repos <name or path>` |
-| "not a registered repo or a directory" | a `--repos` entry is neither a registry name nor a path | pass the checkout's path, or `/egm:egm-init add <path>` |
+| "not a registered repo or a directory" | a `--repos` entry is neither a registry name nor a path | pass the checkout's path, or `/egm-pilot:egm-init add <path>` |
 | A reviewer cannot read its persona | the read-approval hook did not run | check `docs/claude.md` (Cowork and headless notes) |
 | A hook blocked a command | the guard or another hook matched | read the message; do not bypass it |
 

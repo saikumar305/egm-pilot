@@ -1,9 +1,9 @@
 {
-  "title": "Elephant-Goldfish Model",
-  "abbr": "EGM",
+  "title": "EGM Pilot",
+  "abbr": "Elephant-Goldfish Model",
   "tagline": "Built with full context. Reviewed with fresh eyes.",
   "repo_url": "https://github.com/google/elephant-goldfish-model",
-  "install_command": "claude plugin marketplace add google/elephant-goldfish-model && claude plugin install egm@egm",
+  "install_command": "claude plugin marketplace add OWNER/REPO && claude plugin install egm-pilot@egm-pilot",
   "local_install_command": "claude --plugin-dir /path/to/elephant-goldfish-model",
   "copyright": "Copyright 2026 Google LLC. This is not an officially supported Google product.",
   "groups": {

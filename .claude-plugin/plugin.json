@@ -1,7 +1,7 @@
 {
-  "name": "egm",
+  "name": "egm-pilot",
   "version": "0.1.0",
-  "description": "Elephant-Goldfish Model: spec-driven development with deep-context drafting and zero-context Goldfish reviews.",
+  "description": "EGM Pilot: a task or an idea to a reviewed Draft merge request, built on the Elephant-Goldfish Model: deep-context drafting and building, zero-context Goldfish reviews, unattended or interactive.",
   "author": {
     "name": "Google LLC"
   },

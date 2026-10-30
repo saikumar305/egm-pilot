@@ -7,8 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>EGM for Claude Code: from task to reviewed merge request</title>
-<meta name="description" content="EGM is a Claude Code plugin for spec-driven development: deep-context agents draft specs, zero-context subagents stress-test them, and EGM Autopilot takes a task or an idea to a reviewed Draft merge request.">
+<title>EGM Pilot: from task to reviewed merge request, for Claude Code</title>
+<meta name="description" content="EGM Pilot is a Claude Code plugin for spec-driven development, built on the Elephant-Goldfish Model: deep-context agents draft specs, zero-context subagents stress-test them, and EGM Autopilot takes a task or an idea to a reviewed Draft merge request.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%90%98%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/site.css">
 <script>try { var t = localStorage.getItem("egm-theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
@@ -17,7 +17,7 @@ SPDX-License-Identifier: Apache-2.0
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="nav">
-  <a class="brand" href="#top"><span class="mark" aria-hidden="true">🐘</span><span class="brand-name"><span data-site="title">Elephant-Goldfish Model</span> <abbr data-site="abbr" title="Elephant-Goldfish Model">EGM</abbr></span></a>
+  <a class="brand" href="#top"><span class="mark" aria-hidden="true">🐘</span><span class="brand-name"><span data-site="title">EGM Pilot</span> <small class="brand-sub" data-site="abbr">Elephant-Goldfish Model</small></span></a>
   <nav class="nav-links" aria-label="Sections">
     <a href="#how">How it works</a>
     <a href="#approach">Approach</a>
@@ -99,14 +99,14 @@ SPDX-License-Identifier: Apache-2.0
         <p>Start it and walk away. Policy settles what it can, and anything that needs a person parks with a multiple-choice question (<code>1B 2A</code>).</p>
         <p class="stops"><strong>Your stops:</strong> the final MR, plus a park if it gets stuck or the change is high risk.</p>
         <p class="best"><strong>Best for:</strong> well-groomed tasks with clear acceptance criteria.</p>
-        <code class="cmd">/egm:egm-autopilot LABS-2345</code>
+        <code class="cmd">/egm-pilot:egm-autopilot LABS-2345</code>
       </article>
       <article class="card mode-card i">
         <h4>💬 Interactive <small>--interactive</small></h4>
         <p>A pairing session. The same phases and reviewers, but it asks you instead of guessing, and nothing moves on until you approve.</p>
         <p class="stops"><strong>Your stops:</strong> every decision, from the readiness questions to the MR preview.</p>
         <p class="best"><strong>Best for:</strong> ideas, fuzzy tasks and risky changes.</p>
-        <code class="cmd">/egm:egm-autopilot --idea "…" --interactive</code>
+        <code class="cmd">/egm-pilot:egm-autopilot --idea "…" --interactive</code>
       </article>
     </div>
 
@@ -191,23 +191,23 @@ SPDX-License-Identifier: Apache-2.0
     <li class="card step">
       <span class="step-no">1</span>
       <h3>Brainstorm</h3>
-      <code>/egm:egm-brainstorm</code>
+      <code>/egm-pilot:egm-brainstorm</code>
       <p>Test the idea and write a concept brief.</p>
     </li>
     <li class="card step">
       <span class="step-no">2</span>
       <h3>Draft</h3>
-      <code>/egm:egm-draft</code>
+      <code>/egm-pilot:egm-draft</code>
       <p>Turn the brief into a design document, one section at a time.</p>
     </li>
     <li class="card step">
       <span class="step-no">3</span>
       <h3>Review</h3>
-      <code>/egm:egm-review</code>
+      <code>/egm-pilot:egm-review</code>
       <p>Fresh reviewers run five stages over the design. Resolve the findings.</p>
     </li>
   </ol>
-  <p class="note">After the coding agent has built against the spec, check for drift with <code>/egm:egm-drift-report</code>.</p>
+  <p class="note">After the coding agent has built against the spec, check for drift with <code>/egm-pilot:egm-drift-report</code>.</p>
 </section>
 
 <section class="section" id="autopilot" aria-labelledby="autopilot-title">
@@ -247,7 +247,7 @@ SPDX-License-Identifier: Apache-2.0
   <div class="install">
     <h3>From the marketplace</h3>
     <div class="command">
-      <code data-site="install_command">claude plugin marketplace add google/elephant-goldfish-model && claude plugin install egm@egm</code>
+      <code data-site="install_command">claude plugin marketplace add OWNER/REPO && claude plugin install egm-pilot@egm-pilot</code>
       <button class="btn small" type="button" data-copy="install">Copy</button>
     </div>
     <h3>From a local copy</h3>
@@ -255,8 +255,8 @@ SPDX-License-Identifier: Apache-2.0
       <code data-site="local_install_command">claude --plugin-dir /path/to/elephant-goldfish-model</code>
       <button class="btn small" type="button" data-copy="local">Copy</button>
     </div>
-    <p class="note">Use a uniquely named copy if an <code>egm</code> plugin is already installed. Then enable it with <code>claude plugin enable egm@egm</code>.</p>
-    <p class="note">Autopilot also needs <code>git</code>, <code>jq</code>, <code>glab</code> logged in as you, and your tracker connected to Claude Code through MCP (for Jira, the Atlassian connector). Run <code>/egm:egm-init</code> once to register your repos.</p>
+    <p class="note">Replace <code>OWNER/REPO</code> with the repository EGM Pilot is published from, then enable it with <code>claude plugin enable egm-pilot@egm-pilot</code>. Commands use the <code>/egm-pilot:</code> prefix, so it can sit beside the original <code>egm</code> plugin.</p>
+    <p class="note">Autopilot also needs <code>git</code>, <code>jq</code>, <code>glab</code> logged in as you, and your tracker connected to Claude Code through MCP (for Jira, the Atlassian connector). Run <code>/egm-pilot:egm-init</code> once to register your repos.</p>
     <p class="note">Claude Cowork: see <a href="https://github.com/google/elephant-goldfish-model/blob/main/docs/claude.md#claude-cowork" rel="noopener">Claude Code integration</a>.</p>
   </div>
 </section>

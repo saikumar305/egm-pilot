@@ -80,7 +80,7 @@ code {
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 0.5rem; color: var(--ink); text-decoration: none; font-weight: 650; }
-.brand abbr { text-decoration: none; color: var(--muted); font-weight: 500; }
+.brand-sub { color: var(--muted); font-weight: 500; font-size: 0.85rem; margin-left: 0.35rem; }
 .mark { font-size: 1.4rem; }
 .nav-links { display: flex; gap: 1rem; margin-left: auto; flex-wrap: wrap; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.95rem; }
@@ -335,6 +335,7 @@ main, .footer { max-width: var(--max); margin: 0 auto; padding: 0 clamp(1rem, 4v
   .nav-links { display: none; }
   .nav { justify-content: space-between; }
   .theme-toggle { margin-left: auto; }
+  .brand-sub { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

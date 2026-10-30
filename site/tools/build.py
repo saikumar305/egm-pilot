@@ -72,8 +72,8 @@ def validate(entries: list) -> list:
         for field in FIELDS:
             if not entry.get(field):
                 errors.append(f"{name}: missing '{field}' in site/src/skills.json")
-        if not entry.get("command", "").startswith("/egm:"):
-            errors.append(f"{name}: command must start with /egm: (the plugin prefix)")
+        if not entry.get("command", "").startswith("/egm-pilot:"):
+            errors.append(f"{name}: command must start with /egm-pilot: (the plugin prefix)")
 
     for name in sorted(set(on_disk) - set(names)):
         errors.append(f"{name}: has a SKILL.md but no entry in site/src/skills.json")

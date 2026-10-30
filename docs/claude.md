@@ -11,12 +11,12 @@ must not be treated as verified Goldfish isolation environments.
 ## Invocation and resources
 
 ```sh
-claude plugin marketplace add google/elephant-goldfish-model
-claude plugin install egm@egm
+claude plugin marketplace add OWNER/REPO   # the repository EGM Pilot is published from
+claude plugin install egm-pilot@egm-pilot
 ```
 
-Enable the installed plugin with `claude plugin enable egm@egm`.
-Start messages with `/egm:egm-brainstorm`, `/egm:egm-draft`, or `/egm:egm-review`.
+Enable the installed plugin with `claude plugin enable egm-pilot@egm-pilot`.
+Start messages with `/egm-pilot:egm-brainstorm`, `/egm-pilot:egm-draft`, or `/egm-pilot:egm-review`.
 Skills retain `disable-model-invocation: true`: their absence from automatic
 skill discovery is expected. The `Skill` tool refuses these skills, so to run
 another EGM skill (for example `egm-review-loop` or `egm-resolve` during review
@@ -33,7 +33,7 @@ If the user's prompt or agent instructions file (`CLAUDE.md` or `AGENTS.md`)
 has a line `EGM artifact directory: <path>`, write them to that folder instead:
 resolve a relative path against the working directory, and create the folder if
 it does not exist.
-In Claude Code, `egm:egm-synthesizer` may spawn reviewers (nesting is allowed
+In Claude Code, `egm-pilot:egm-synthesizer` may spawn reviewers (nesting is allowed
 up to 3 levels by default), or the main context may dispatch reviewers directly.
 In Claude Cowork, subagents cannot spawn further subagents, so dispatch
 reviewers directly from the main context instead of launching a synthesizer
@@ -64,7 +64,7 @@ that cannot read its persona or standard has not reviewed.
 ## Reviewer isolation
 
 Spawn a new native Agent of the plugin's registered reviewer type for each
-independent review, for example `egm:egm-zoom-out`. Do not fork the conversation
+independent review, for example `egm-pilot:egm-zoom-out`. Do not fork the conversation
 or resume a previous reviewer. Provide only the task, target, persona/standard
 paths, and explicitly supplied Goldfish context; do not copy parent deliberation.
 
@@ -90,7 +90,7 @@ accessible files. Pass any required review constraints explicitly and keep
 unrelated history, logs, and memory out of the review task.
 
 For local testing, load a uniquely named copy with `claude --plugin-dir <copy>`
-to avoid confusion with an already installed `egm` plugin. Validate it with
+to avoid confusion with an already installed `egm-pilot` plugin. Validate it with
 `claude plugin validate <copy>/.claude-plugin/plugin.json`.
 
 ## Claude Cowork

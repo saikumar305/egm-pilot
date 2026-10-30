@@ -12,13 +12,13 @@ particular layout.
 
 `--repos <entry>,<entry>,...` attaches repos to the run. Each entry is one of:
 
-- a **registry name** from `~/.egm/workspace.yaml` (added with `/egm:egm-init add`), or
+- a **registry name** from `~/.egm/workspace.yaml` (added with `/egm-pilot:egm-init add`), or
 - a **path** to a local git checkout anywhere on disk (absolute, `~/`-relative, or relative to
   the working directory).
 
 Resolve every entry with `egm_home.sh resolve <entry>`, which prints `name<TAB>path<TAB>role`
 (`role` is `other` for an unregistered path). Registration is optional: an unregistered path
-works, it just has no prebuilt knowledge (say so once and suggest `/egm:egm-init add <path>`).
+works, it just has no prebuilt knowledge (say so once and suggest `/egm-pilot:egm-init add <path>`).
 
 Attach on the first run, or on `--resume` while the run is parked before Phase 5. Attaching on
 resume reopens the spec (Phase 3) for the new repos. Once implementation has started, a new

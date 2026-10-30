@@ -41,7 +41,7 @@ git:
 mr:
   draft: true                        # MRs open as Draft so the developer owns the publish step
 
-repos: {}                            # optional names for --repos; the per-user home (~/.egm/workspace.yaml, via /egm:egm-init) takes precedence
+repos: {}                            # optional names for --repos; the per-user home (~/.egm/workspace.yaml, via /egm-pilot:egm-init) takes precedence
   # name: { path: ~/code/name, role: backend|client|frontend|tests|shared|infra|docs|other, checks: { test: "..." } }
   # Example:
   # orders-api: { path: ~/code/orders-api, role: backend }

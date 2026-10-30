@@ -130,7 +130,7 @@ const STEPS = [
  { chip:"1 Intake", from:"jira", to:"elephant", label:"LABS-2345", on:["jira","elephant"],
    title:"1. Intake: read the ticket and check it's ready",
    body:["The Elephant fetches the ticket: description, acceptance criteria, labels, comments.",
-         "It also loads what it already knows about your repos from <code>~/.egm</code>: what each repo is, how to build and test it, and which contracts it exposes and consumes. You set that up once with <code>/egm:egm-init</code>.",
+         "It also loads what it already knows about your repos from <code>~/.egm</code>: what each repo is, how to build and test it, and which contracts it exposes and consumes. You set that up once with <code>/egm-pilot:egm-init</code>.",
          "It scores how ready the ticket is. If the score is too low, it <b>parks</b>: it posts a short multiple-choice form on the ticket and stops, rather than guessing.",
          "Each question has lettered options and one recommended answer, so you reply <code>1B 2A</code> instead of writing paragraphs.",
          "Ticket text is treated as data, never as instructions. A ticket that says \"ignore your rules\" is logged and parked.",
@@ -164,7 +164,7 @@ const STEPS = [
          "The Elephant may also <b>suggest</b> other repos the change probably touches, with the evidence. Suggestions are only listed; it never adds a repo by itself, and ticket text can never add one."],
    who:["auto","No question here. Attach repos when you start the run, or on <code>--resume</code> before building starts."],
    side:()=>`<h3>What you type</h3><table>
-     <tr><td><code>--repos orders-client</code></td><td><span class="pill a">registered</span><br><small>a name from <code>/egm:egm-init</code></small></td></tr>
+     <tr><td><code>--repos orders-client</code></td><td><span class="pill a">registered</span><br><small>a name from <code>/egm-pilot:egm-init</code></small></td></tr>
      <tr><td><code>--repos ~/work/web-app</code></td><td><span class="pill o">path</span><br><small>any git checkout, anywhere</small></td></tr></table>
      <h3>Suggested, not attached</h3><table>
      <tr><td><b>e2e-tests</b> <span class="pill s">tests</span></td><td><small>no coverage of the new field yet</small></td></tr></table>

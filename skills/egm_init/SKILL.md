@@ -19,7 +19,7 @@ The helper script owns the layout, the repo list and the freshness check:
 `SCRIPT="${CLAUDE_PLUGIN_ROOT}/skills/egm_init/scripts/egm_home.sh"`. Run it with Bash. You
 read the repos and write the knowledge files.
 
-Usage: `/egm:egm-init [add <path>... [--role r] [--name n] | refresh [name|--all] | status | remove <name>]`
+Usage: `/egm-pilot:egm-init [add <path>... [--role r] [--name n] | refresh [name|--all] | status | remove <name>]`
 With no arguments: initialise, then offer to add the current directory's repo.
 
 Registering is optional. Repos are independent checkouts wherever they live on disk; they do
