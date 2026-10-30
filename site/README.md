@@ -11,7 +11,8 @@ site/
   index.html           the page
   assets/site.css      styles (light and dark)
   assets/site.js       renders skill cards, copy buttons, configured links
-  src/skills.json      curated per-skill display text (title, group, command, summary)
+  src/skills.json      curated per-skill display text (group, icon, title, command,
+                       purpose, use_when, you_get, example)
   src/site.json        site-wide settings (repo URL, install commands, copyright)
   tools/build.py       generator: validates and writes the outputs below
   data/skills.js       GENERATED, git-ignored

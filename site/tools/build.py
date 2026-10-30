@@ -22,6 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / "site"
 SKILLS_DIR = ROOT / "skills"
+# Display fields every entry in site/src/skills.json must have.
+FIELDS = ("group", "icon", "title", "command", "purpose", "use_when", "you_get", "example")
 
 
 def read_frontmatter(path: Path) -> dict:
@@ -67,7 +69,7 @@ def validate(entries: list) -> list:
         if name not in on_disk:
             errors.append(f"{name}: no skills/*/SKILL.md declares this name")
             continue
-        for field in ("group", "title", "command", "summary"):
+        for field in FIELDS:
             if not entry.get(field):
                 errors.append(f"{name}: missing '{field}' in site/src/skills.json")
         if not entry.get("command", "").startswith("/egm:"):
@@ -88,10 +90,7 @@ def build_skill_records(entries: list) -> list:
         fm = read_frontmatter(skill_md)
         records.append({
             "name": entry["name"],
-            "group": entry["group"],
-            "title": entry["title"],
-            "command": entry["command"],
-            "summary": entry["summary"],
+            **{field: entry[field] for field in FIELDS},
             "description": fm.get("description", ""),
             "source": str(skill_md.relative_to(ROOT)),
         })

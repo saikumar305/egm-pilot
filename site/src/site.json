@@ -1,9 +1,14 @@
 {
   "title": "Elephant-Goldfish Model",
   "abbr": "EGM",
-  "tagline": "Design with an elephant. Review with a goldfish.",
+  "tagline": "Built with full context. Reviewed with fresh eyes.",
   "repo_url": "https://github.com/google/elephant-goldfish-model",
   "install_command": "claude plugin marketplace add google/elephant-goldfish-model && claude plugin install egm@egm",
   "local_install_command": "claude --plugin-dir /path/to/elephant-goldfish-model",
-  "copyright": "Copyright 2026 Google LLC. This is not an officially supported Google product."
+  "copyright": "Copyright 2026 Google LLC. This is not an officially supported Google product.",
+  "groups": {
+    "Shape the idea": "Go from an idea to a design that fresh reviewers could not break.",
+    "Keep docs honest": "Check any document against a standard, and against the code as it is today.",
+    "Ship the change": "Turn a task or an idea into reviewed Draft MRs in your repos."
+  }
 }

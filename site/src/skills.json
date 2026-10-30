@@ -1,65 +1,101 @@
 [
   {
     "name": "egm-brainstorm",
-    "group": "Design",
+    "group": "Shape the idea",
+    "icon": "💡",
     "title": "Brainstorm",
     "command": "/egm:egm-brainstorm",
-    "summary": "Test an idea and write a concept brief."
+    "purpose": "Turn a half-formed idea into a clear problem and a few testable options before anyone writes a design.",
+    "use_when": "You have an idea, a request or a pain point, but not yet a shared understanding of it.",
+    "you_get": "concepts_brief.md: the problem, goals, options and open questions, already challenged by fresh reviewers.",
+    "example": "/egm:egm-brainstorm Let admins export invoices as CSV"
   },
   {
     "name": "egm-draft",
-    "group": "Design",
+    "group": "Shape the idea",
+    "icon": "📝",
     "title": "Draft",
     "command": "/egm:egm-draft",
-    "summary": "Turn a brief or existing notes into a design document."
+    "purpose": "Write the design document one section at a time, with your approval at each section.",
+    "use_when": "The problem and the approach are agreed, from a brief or your own notes.",
+    "you_get": "design_draft.md, following the feature-spec standard and ready for review.",
+    "example": "/egm:egm-draft concepts_brief.md"
   },
   {
     "name": "egm-review",
-    "group": "Design",
+    "group": "Shape the idea",
+    "icon": "🔍",
     "title": "Review",
     "command": "/egm:egm-review",
-    "summary": "Review a design with fresh agents across five stages."
-  },
-  {
-    "name": "egm-review-loop",
-    "group": "Design",
-    "title": "Review loop",
-    "command": "/egm:egm-review-loop",
-    "summary": "Run a configured group of reviewers for a specific review task."
+    "purpose": "Have fresh reviewers with no memory of the conversation pull the design apart, in five stages.",
+    "use_when": "A design draft exists and you want it proven implementable before code is written.",
+    "you_get": "consolidated_review_report.md: ranked findings with evidence, from zoom-out to implementation readiness.",
+    "example": "/egm:egm-review design_draft.md"
   },
   {
     "name": "egm-resolve",
-    "group": "Design",
+    "group": "Shape the idea",
+    "icon": "🤝",
     "title": "Resolve",
     "command": "/egm:egm-resolve",
-    "summary": "Work through review findings and agree on changes."
+    "purpose": "Go through review findings with you, one decision at a time: apply the fix, contest it, or defer it.",
+    "use_when": "A review has produced findings and you want them settled, not just listed.",
+    "you_get": "An updated document and a record of every decision and why.",
+    "example": "/egm:egm-resolve consolidated_review_report.md"
+  },
+  {
+    "name": "egm-review-loop",
+    "group": "Keep docs honest",
+    "icon": "🔁",
+    "title": "Review loop",
+    "command": "/egm:egm-review-loop",
+    "purpose": "Run a chosen set of reviewers against any document and apply the fixes you approve, round after round.",
+    "use_when": "You need a focused check of a README, plan or spec against a standard or template.",
+    "you_get": "The reviewed document with approved fixes applied, plus a findings report.",
+    "example": "/egm:egm-review-loop README.md"
   },
   {
     "name": "egm-drift-report",
-    "group": "Design",
+    "group": "Keep docs honest",
+    "icon": "🧭",
     "title": "Drift report",
     "command": "/egm:egm-drift-report",
-    "summary": "Compare checked-in documents with the current source code."
+    "purpose": "Compare checked-in design docs and READMEs with the code as it is today.",
+    "use_when": "The code has moved on since the docs were written, or a build against a spec has finished.",
+    "you_get": "An actionable list of where the documents and the code disagree.",
+    "example": "/egm:egm-drift-report docs/designs"
   },
   {
     "name": "egm-bootstrap",
-    "group": "Design",
+    "group": "Keep docs honest",
+    "icon": "🌱",
     "title": "Bootstrap",
     "command": "/egm:egm-bootstrap",
-    "summary": "Create or update documentation for an existing codebase."
+    "purpose": "Create or update a README for each directory in a code subtree, written from the code itself.",
+    "use_when": "You are adopting EGM in a repo with little documentation for agents or people to start from.",
+    "you_get": "Directory README.md files that describe what each part of the code does.",
+    "example": "/egm:egm-bootstrap src/"
   },
   {
     "name": "egm-init",
-    "group": "Workspace",
+    "group": "Ship the change",
+    "icon": "🗂️",
     "title": "Init",
     "command": "/egm:egm-init",
-    "summary": "Optionally register your repos and build per-repo knowledge in ~/.egm."
+    "purpose": "Register your repos once, so Autopilot knows how each one builds, tests and connects before a run starts.",
+    "use_when": "Before your first Autopilot run, or after a repo has changed a lot. Optional.",
+    "you_get": "~/.egm: a repo registry, per-repo knowledge and a cross-repo contract map.",
+    "example": "/egm:egm-init add ~/code/orders-api"
   },
   {
     "name": "egm-autopilot",
-    "group": "Autopilot",
+    "group": "Ship the change",
+    "icon": "🚀",
     "title": "Autopilot",
     "command": "/egm:egm-autopilot",
-    "summary": "Take an assigned Jira ticket, or an idea, to a reviewed Draft MR: unattended or interactive."
+    "purpose": "Take a task or an idea all the way to a reviewed Draft MR: spec, review, tests-first build, code review.",
+    "use_when": "You want a change built and reviewed against your repo's standards, unattended or with you at every step.",
+    "you_get": "Draft MRs in your name, with the spec, the review record and the open decisions in the description.",
+    "example": "/egm:egm-autopilot LABS-2345 --interactive"
   }
 ]

@@ -7,10 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Elephant-Goldfish Model: design with an elephant, review with a goldfish</title>
-<meta name="description" content="EGM is a Claude Code plugin for spec-driven development: deep-context agents draft specs, zero-context subagents stress-test them, and EGM Autopilot takes a Jira ticket or an idea to a reviewed Draft merge request.">
+<title>EGM for Claude Code: from task to reviewed merge request</title>
+<meta name="description" content="EGM is a Claude Code plugin for spec-driven development: deep-context agents draft specs, zero-context subagents stress-test them, and EGM Autopilot takes a task or an idea to a reviewed Draft merge request.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%90%98%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/site.css">
+<script>try { var t = localStorage.getItem("egm-theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -18,12 +19,17 @@ SPDX-License-Identifier: Apache-2.0
 <header class="nav">
   <a class="brand" href="#top"><span class="mark" aria-hidden="true">🐘</span><span class="brand-name"><span data-site="title">Elephant-Goldfish Model</span> <abbr data-site="abbr" title="Elephant-Goldfish Model">EGM</abbr></span></a>
   <nav class="nav-links" aria-label="Sections">
+    <a href="#how">How it works</a>
     <a href="#approach">Approach</a>
     <a href="#workflow">Workflow</a>
     <a href="#autopilot">Autopilot</a>
     <a href="#skills">Skills</a>
     <a href="#install">Install</a>
   </nav>
+  <button class="icon-link theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme" title="Switch theme">
+    <svg class="moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <svg class="sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg>
+  </button>
   <a class="icon-link" data-site-href="repo_url" href="#" aria-label="GitHub repository">
     <svg viewBox="0 0 16 16" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.96 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.08-1.87 3.75-3.66 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
   </a>
@@ -33,11 +39,132 @@ SPDX-License-Identifier: Apache-2.0
 
 <section class="hero" id="top">
   <p class="eyebrow">Spec-driven development for Claude Code</p>
-  <h1>Design with an elephant.<br><span class="accent">Review with a goldfish.</span></h1>
-  <p class="lede">Engineers use this open-source plugin to draft specs with deep-context agents, then stress-test them with zero-context subagents before any code is written.</p>
+  <h1>Built with full context.<br><span class="accent">Reviewed with fresh eyes.</span></h1>
+  <p class="lede">An open-source plugin that takes a task or an idea to a reviewed Draft merge request. One agent holds the whole picture and builds; fresh agents that never saw the work try to break it before you do.</p>
   <div class="hero-actions">
     <button class="btn primary" type="button" data-copy="install">Copy install command</button>
+    <a class="btn" href="#how">See how it works</a>
     <a class="btn" href="#skills">See the skills</a>
+  </div>
+</section>
+
+<section class="section" id="how" aria-labelledby="how-title">
+  <h2 id="how-title">The goal: code that has already survived review.</h2>
+  <p class="intro">One agent holds all the context and does the work. Fresh agents, who never saw how it was done, try to break it. Only what survives reaches you, as a Draft merge request in your name.</p>
+
+  <ol class="goal" aria-label="How a change moves through EGM">
+    <li class="goal-node input">
+      <span class="goal-icon" aria-hidden="true">🎫 💡</span>
+      <strong>Task or idea</strong>
+      <span>A task from your tracker (for example a Jira key), or <code>--idea "…"</code></span>
+    </li>
+    <li class="goal-loop" aria-label="Build and review loop">
+      <div class="goal-node elephant">
+        <span class="goal-icon" aria-hidden="true">🐘</span>
+        <strong>Elephant builds</strong>
+        <span>Holds the task, the code and your repo's rules. Writes the spec, then the code, tests first.</span>
+      </div>
+      <div class="loop-arrows" aria-hidden="true"><span>draft →</span><span>← findings</span></div>
+      <div class="goal-node goldfish">
+        <span class="goal-icon" aria-hidden="true">🐠</span>
+        <strong>Goldfish review</strong>
+        <span>New reviewers every round. They see only the spec, the diff and the code, so they can't agree by default.</span>
+      </div>
+      <p class="loop-note">Repeats until a round finds no blocker or major issue.</p>
+    </li>
+    <li class="goal-node output">
+      <span class="goal-icon" aria-hidden="true">📬</span>
+      <strong>Draft MR</strong>
+      <span>In your name, with the spec, decisions and open findings in the description.</span>
+    </li>
+    <li class="goal-node you">
+      <span class="goal-icon" aria-hidden="true">🧑‍💻</span>
+      <strong>You merge</strong>
+      <span>Merging is always yours. EGM never merges, approves or force-pushes.</span>
+    </li>
+  </ol>
+
+  <div class="modes" id="modes" data-mode="unattended">
+    <div class="mode-head">
+      <h3>One pipeline, two ways to drive it</h3>
+      <div class="mode-switch" role="group" aria-label="Choose a mode">
+        <button type="button" class="mode-btn" data-set-mode="unattended" aria-pressed="true">🤖 Unattended</button>
+        <button type="button" class="mode-btn" data-set-mode="interactive" aria-pressed="false">💬 Interactive</button>
+      </div>
+    </div>
+
+    <div class="mode-cards">
+      <article class="card mode-card u">
+        <h4>🤖 Unattended <small>the default</small></h4>
+        <p>Start it and walk away. Policy settles what it can, and anything that needs a person parks with a multiple-choice question (<code>1B 2A</code>).</p>
+        <p class="stops"><strong>Your stops:</strong> the final MR, plus a park if it gets stuck or the change is high risk.</p>
+        <p class="best"><strong>Best for:</strong> well-groomed tasks with clear acceptance criteria.</p>
+        <code class="cmd">/egm:egm-autopilot LABS-2345</code>
+      </article>
+      <article class="card mode-card i">
+        <h4>💬 Interactive <small>--interactive</small></h4>
+        <p>A pairing session. The same phases and reviewers, but it asks you instead of guessing, and nothing moves on until you approve.</p>
+        <p class="stops"><strong>Your stops:</strong> every decision, from the readiness questions to the MR preview.</p>
+        <p class="best"><strong>Best for:</strong> ideas, fuzzy tasks and risky changes.</p>
+        <code class="cmd">/egm:egm-autopilot --idea "…" --interactive</code>
+      </article>
+    </div>
+
+    <ol class="timeline" aria-label="Phases and who acts in each">
+      <li class="u-maybe i-you">
+        <span class="t-no">0</span>
+        <div><h4>Intake</h4><p>Reads the task or idea, loads what it knows about your repos, scores readiness.</p>
+        <p class="m u">Too vague? It parks with a short question form and stops.</p>
+        <p class="m i">Asks you the open questions now, one at a time.</p></div>
+      </li>
+      <li class="i-you">
+        <span class="t-no">1</span>
+        <div><h4>Lane</h4><p>Picks <em>small</em>, <em>feature</em> or <em>high</em> from the risk. Auth, payments, schema and public APIs force <em>high</em>.</p>
+        <p class="m u">Decided by policy.</p>
+        <p class="m i">You confirm it, or lower it if no hard trigger fired.</p></div>
+      </li>
+      <li>
+        <span class="t-no">2</span>
+        <div><h4>Workspace and standards</h4><p>A worktree per repo, baseline checks, and a standards pack from the repo's own rules.</p>
+        <p class="m u">Automatic. Other likely affected repos are listed, never added.</p>
+        <p class="m i">Suggested repos are shown; ask and it attaches one.</p></div>
+      </li>
+      <li class="u-maybe i-you">
+        <span class="t-no">3</span>
+        <div><h4>Spec</h4><p>Answers its own questions from the code and docs, citing each source.</p>
+        <p class="m u">Gaps become recorded Assumptions or Open Decisions; a true blocker parks.</p>
+        <p class="m i">A brainstorm dialogue for what the code can't answer, then you approve the spec section by section.</p></div>
+      </li>
+      <li class="u-maybe i-you">
+        <span class="t-no">4</span>
+        <div><h4>Spec review</h4><p>Fresh Goldfish reviewers challenge the spec in stages.</p>
+        <p class="m u">Findings settled by policy. On the high lane it parks for your spec approval.</p>
+        <p class="m i">You decide each finding. On the high lane, your approval in chat is the gate.</p></div>
+      </li>
+      <li class="i-you">
+        <span class="t-no">5</span>
+        <div><h4>Build</h4><p>One unit at a time: tests first, then code that follows the standards pack, until every check is green.</p>
+        <p class="m u">Fixes and retries up to a cap, then opens a Draft with the findings.</p>
+        <p class="m i">You approve each unit's plan and see its diff and checks.</p></div>
+      </li>
+      <li class="i-you">
+        <span class="t-no">6</span>
+        <div><h4>Code review</h4><p>Spec auditor, bug hunter and code quality on every lane; tests, zoom-out and security as risk rises.</p>
+        <p class="m u">Findings settled by policy; the rest are listed in the MR.</p>
+        <p class="m i">You apply, contest or defer each finding.</p></div>
+      </li>
+      <li class="i-you">
+        <span class="t-no">7</span>
+        <div><h4>Draft MRs</h4><p>In your name, from your repo's MR template, stacked when the work is split.</p>
+        <p class="m u">Pushed and linked on the task automatically.</p>
+        <p class="m i">You approve the preview before anything is pushed.</p></div>
+      </li>
+      <li class="u-you i-you final">
+        <span class="t-no">✓</span>
+        <div><h4>You review and merge</h4><p>Always yours, in both modes.</p></div>
+      </li>
+    </ol>
+    <p class="legend"><span class="key you">You act</span> <span class="key maybe">Only if it parks, or on the high lane</span> <span class="key none">Runs on its own</span></p>
   </div>
 </section>
 
@@ -84,21 +211,21 @@ SPDX-License-Identifier: Apache-2.0
 </section>
 
 <section class="section" id="autopilot" aria-labelledby="autopilot-title">
-  <h2 id="autopilot-title">EGM Autopilot: Jira ticket or idea to reviewed merge request</h2>
-  <p class="intro">Give it an assigned Jira ticket, or describe an idea with <code>--idea</code>. It plans, builds and reviews the change in your own session, with your own logins, and opens a Draft merge request in your name. You review and merge it.</p>
+  <h2 id="autopilot-title">EGM Autopilot: task or idea to reviewed merge request</h2>
+  <p class="intro">Give it an assigned task (for example a Jira ticket), or describe an idea with <code>--idea</code>. It plans, builds and reviews the change in your own session, with your own logins, and opens a Draft merge request in your name. You review and merge it.</p>
   <ul class="pipeline" aria-label="Autopilot stages">
     <li>Intake</li><li>Lane</li><li>Attached repos</li><li>Worktrees</li><li>Spec</li><li>Spec review</li><li>Build</li><li>Code review</li><li>Draft MRs</li><li class="you">You review</li>
   </ul>
   <ul class="features">
     <li><strong>Risk lanes.</strong> Auth, payments, schema, public APIs and cross-repo contracts force a human spec approval.</li>
-    <li><strong>Ticket or idea.</strong> <code>--idea "&lt;text&gt;"</code> starts without a ticket; <code>--ticket &lt;PROJECT&gt;</code> files one once the spec is reviewed.</li>
+    <li><strong>Task or idea.</strong> <code>--idea "&lt;text&gt;"</code> starts without a task; <code>--ticket &lt;PROJECT&gt;</code> files one once the spec is reviewed.</li>
     <li><strong>Two modes.</strong> Unattended, or <code>--interactive</code>: a live Q&amp;A where you approve the spec, each unit, every review finding and the MR.</li>
     <li><strong>Your repo's standards.</strong> Code follows a standards pack built from the repo's own instructions, style guides and conventions, and a reviewer checks every diff against it.</li>
     <li><strong>Optional multi-repo.</strong> One repo by default; attach more with <code>--repos</code> from anywhere on disk. Other likely affected repos are only suggested.</li>
-    <li><strong>Stacked MRs.</strong> Large tickets become small units, each reviewed on its own, raised as linked Draft MRs.</li>
-    <li><strong>Parked questions.</strong> It asks on Jira with multiple-choice answers (<code>1B 2A</code>) and resumes with <code>--resume</code>.</li>
+    <li><strong>Stacked MRs.</strong> Large tasks become small units, each reviewed on its own, raised as linked Draft MRs.</li>
+    <li><strong>Parked questions.</strong> It asks on the task with multiple-choice answers (<code>1B 2A</code>) and resumes with <code>--resume</code>.</li>
     <li><strong>Your repo's MR template.</strong> Only verified checks are ticked; unknowns are marked, never guessed.</li>
-    <li><strong>Guardrails.</strong> It never merges, approves or force-pushes, and Jira text is treated as untrusted input.</li>
+    <li><strong>Guardrails.</strong> It never merges, approves or force-pushes, and task text is treated as untrusted input.</li>
   </ul>
   <div class="hero-actions">
     <a class="btn primary" href="autopilot/flow.html">Watch the step-by-step walkthrough</a>
@@ -107,8 +234,8 @@ SPDX-License-Identifier: Apache-2.0
 </section>
 
 <section class="section alt" id="skills" aria-labelledby="skills-title">
-  <h2 id="skills-title">Included skills</h2>
-  <p class="intro">Every skill ships with the plugin. Commands are shown with the plugin prefix, as Claude Code expects.</p>
+  <h2 id="skills-title">The skills</h2>
+  <p class="intro">Use them one at a time to shape a design yourself, or let Autopilot run them for you. Commands are shown with the plugin prefix, as Claude Code expects.</p>
   <div class="skill-grid" id="skill-grid" aria-live="polite">
     <noscript><p>Enable JavaScript to see the skill list, or read the <a data-site-href="repo_url" href="#">repository</a>.</p></noscript>
   </div>
@@ -129,7 +256,7 @@ SPDX-License-Identifier: Apache-2.0
       <button class="btn small" type="button" data-copy="local">Copy</button>
     </div>
     <p class="note">Use a uniquely named copy if an <code>egm</code> plugin is already installed. Then enable it with <code>claude plugin enable egm@egm</code>.</p>
-    <p class="note">Autopilot also needs <code>git</code>, <code>jq</code>, <code>glab</code> logged in as you, and the Atlassian connector in Claude Code. Run <code>/egm:egm-init</code> once to register your repos.</p>
+    <p class="note">Autopilot also needs <code>git</code>, <code>jq</code>, <code>glab</code> logged in as you, and your tracker connected to Claude Code through MCP (for Jira, the Atlassian connector). Run <code>/egm:egm-init</code> once to register your repos.</p>
     <p class="note">Claude Cowork: see <a href="https://github.com/google/elephant-goldfish-model/blob/main/docs/claude.md#claude-cowork" rel="noopener">Claude Code integration</a>.</p>
   </div>
 </section>
