@@ -9,8 +9,8 @@ text.
 | Harness | Install |
 | --- | --- |
 | Antigravity | `agy plugin install https://github.com/google/elephant-goldfish-model` (or `/plugin` in the IDE) |
-| Claude Code | `claude plugin marketplace add OWNER/REPO && claude plugin install egm-pilot@egm-pilot (EGM Pilot)` |
-| Claude Cowork | Install from claude.ai/plugins or the Cowork plugin panel via marketplace `google/elephant-goldfish-model` |
+| Claude Code | `claude plugin marketplace add saikumar305/egm-pilot && claude plugin install egm-pilot@egm-pilot (EGM Pilot)` |
+| Claude Cowork | Install from claude.ai/plugins or the Cowork plugin panel via marketplace `saikumar305/egm-pilot` |
 | Codex | `codex plugin marketplace add google/elephant-goldfish-model && codex plugin add egm@egm` (the original EGM; EGM Pilot is Claude Code only) |
 
 Install the whole plugin. Skill-only installers that copy `skills/` alone

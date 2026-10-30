@@ -1,7 +1,7 @@
 # EGM Pilot
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Website](https://img.shields.io/badge/Website-egm.dev-black.svg)](https://egm.dev)
+[![Website](https://img.shields.io/badge/Website-EGM%20Pilot-black.svg)](https://saikumar305.github.io/egm-pilot/)
 
 EGM Pilot is an open-source Claude Code plugin, built on the Elephant-Goldfish Model (EGM), for Spec-Driven Development with AI coding agents. It extends [EGM](https://egm.dev) with Autopilot: a task or an idea to a reviewed Draft merge request. Deep-context Elephant sessions draft specifications, and isolated zero-context Goldfish subagents stress-test them before you write code.
 
@@ -31,11 +31,11 @@ It runs in Claude Code, with a per-user workspace (`/egm-pilot:egm-init`) that t
 
 | Harness | Install |
 | :--- | :--- |
-| **Claude Code** | `claude plugin marketplace add OWNER/REPO && claude plugin install egm-pilot@egm-pilot` |
+| **Claude Code** | `claude plugin marketplace add saikumar305/egm-pilot && claude plugin install egm-pilot@egm-pilot` |
 | **Local copy** | `claude --plugin-dir /path/to/elephant-goldfish-model` (commands use the `/egm-pilot:` prefix, so it can sit beside the original `egm` plugin) |
 | **Claude Cowork** | See [Claude Code integration](docs/claude.md#claude-cowork) |
 
-Replace `OWNER/REPO` with the repository this plugin is published from. Requires Claude Code 2.1.271 or later. Autopilot also needs `git`, `jq`, `glab` (logged in as you), and the Atlassian connector in Claude Code.
+Requires Claude Code 2.1.271 or later. Autopilot also needs `git`, `jq`, `glab` (logged in as you), and the Atlassian connector in Claude Code.
 
 ## Quickstart
 

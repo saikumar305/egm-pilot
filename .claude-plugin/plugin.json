@@ -5,8 +5,8 @@
   "author": {
     "name": "Google LLC"
   },
-  "homepage": "https://egm.dev",
-  "repository": "https://github.com/google/elephant-goldfish-model",
+  "homepage": "https://saikumar305.github.io/egm-pilot/",
+  "repository": "https://github.com/saikumar305/egm-pilot",
   "license": "Apache-2.0",
   "agents": [
     "./.claude-plugin/agents/bootstrap_orchestrator.md",

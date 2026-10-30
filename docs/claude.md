@@ -11,7 +11,7 @@ must not be treated as verified Goldfish isolation environments.
 ## Invocation and resources
 
 ```sh
-claude plugin marketplace add OWNER/REPO   # the repository EGM Pilot is published from
+claude plugin marketplace add saikumar305/egm-pilot
 claude plugin install egm-pilot@egm-pilot
 ```
 
@@ -96,7 +96,7 @@ to avoid confusion with an already installed `egm-pilot` plugin. Validate it wit
 ## Claude Cowork
 
 Claude Cowork uses the same `.claude-plugin` package as Claude Code.
-Install the plugin from claude.ai/plugins or the Cowork plugin panel via marketplace `google/elephant-goldfish-model`.
+Install the plugin from claude.ai/plugins or the Cowork plugin panel via marketplace `saikumar305/egm-pilot`.
 For a candidate package, Customize > Plugins > Add plugin > Upload plugin
 accepts a ZIP containing the Claude manifest, adapters, and shared runtime files.
 Install it and choose **Try in chat**. Record whether the resulting task runs
